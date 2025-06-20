@@ -130,6 +130,10 @@ class StaffMainMenuActivity : AppCompatActivity() {
                     dialog.show()
                     true
                 }
+                "Список пользователей" -> {
+                    startActivity(Intent(this, UserListActivity::class.java))
+                    true
+                }
                 else -> false
             }
         }

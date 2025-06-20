@@ -28,6 +28,7 @@
             android:name=".StaffMainMenuActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity android:name=".UserMainMenuActivity" />
+        <activity android:name=".UserListActivity" android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
     </application>
 
