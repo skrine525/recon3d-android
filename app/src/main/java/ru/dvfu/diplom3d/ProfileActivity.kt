@@ -58,19 +58,32 @@ class ProfileActivity : AppCompatActivity() {
         val infoTitle = TextView(this)
         infoTitle.text = "Основная информация"
         infoTitle.textSize = 18f
-        infoTitle.setPadding(0, 0, 0, 16)
+        infoTitle.setPadding(0, 0, 0, 32)
+        infoTitle.setTextColor(0xFF000000.toInt())
         infoLayout.addView(infoTitle)
 
+        val firstNameLabel = TextView(this)
+        firstNameLabel.text = "Имя"
+        firstNameLabel.textSize = 16f
+        infoLayout.addView(firstNameLabel)
         val firstName = EditText(this)
-        firstName.hint = "Имя"
+        firstName.hint = "Введите имя"
         infoLayout.addView(firstName)
 
+        val lastNameLabel = TextView(this)
+        lastNameLabel.text = "Фамилия"
+        lastNameLabel.textSize = 16f
+        infoLayout.addView(lastNameLabel)
         val lastName = EditText(this)
-        lastName.hint = "Фамилия"
+        lastName.hint = "Введите фамилию"
         infoLayout.addView(lastName)
 
+        val emailLabel = TextView(this)
+        emailLabel.text = "Email"
+        emailLabel.textSize = 16f
+        infoLayout.addView(emailLabel)
         val email = EditText(this)
-        email.hint = "Email"
+        email.hint = "Введите email"
         email.inputType = android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
         infoLayout.addView(email)
 
@@ -98,21 +111,34 @@ class ProfileActivity : AppCompatActivity() {
         val securityTitle = TextView(this)
         securityTitle.text = "Безопасность"
         securityTitle.textSize = 18f
-        securityTitle.setPadding(0, 0, 0, 16)
+        securityTitle.setPadding(0, 0, 0, 32)
+        securityTitle.setTextColor(0xFF000000.toInt())
         securityLayout.addView(securityTitle)
 
+        val oldPasswordLabel = TextView(this)
+        oldPasswordLabel.text = "Старый пароль"
+        oldPasswordLabel.textSize = 16f
+        securityLayout.addView(oldPasswordLabel)
         val oldPassword = EditText(this)
-        oldPassword.hint = "Старый пароль"
+        oldPassword.hint = "Введите старый пароль"
         oldPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
         securityLayout.addView(oldPassword)
 
+        val newPasswordLabel = TextView(this)
+        newPasswordLabel.text = "Новый пароль"
+        newPasswordLabel.textSize = 16f
+        securityLayout.addView(newPasswordLabel)
         val newPassword = EditText(this)
-        newPassword.hint = "Новый пароль"
+        newPassword.hint = "Введите новый пароль"
         newPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
         securityLayout.addView(newPassword)
 
+        val repeatPasswordLabel = TextView(this)
+        repeatPasswordLabel.text = "Повторите новый пароль"
+        repeatPasswordLabel.textSize = 16f
+        securityLayout.addView(repeatPasswordLabel)
         val repeatPassword = EditText(this)
-        repeatPassword.hint = "Повторите новый пароль"
+        repeatPassword.hint = "Введите новый пароль ещё раз"
         repeatPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
         securityLayout.addView(repeatPassword)
 
