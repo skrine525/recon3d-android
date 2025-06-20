@@ -119,6 +119,10 @@ class StaffMainMenuActivity : AppCompatActivity() {
                     startActivity(Intent(this, UserListActivity::class.java))
                     true
                 }
+                "Профиль" -> {
+                    startActivity(Intent(this, ProfileActivity::class.java))
+                    true
+                }
                 else -> false
             }
         }
