@@ -12,6 +12,15 @@ import android.widget.FrameLayout
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.appcompat.app.ActionBarDrawerToggle
+import android.widget.LinearLayout
+import android.view.View
+import android.content.Intent
+import android.app.AlertDialog
+import android.widget.Toast
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import ru.dvfu.diplom3d.api.RetrofitInstance
 
 class StaffMainMenuActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,11 +61,53 @@ class StaffMainMenuActivity : AppCompatActivity() {
         navParams.gravity = Gravity.START
         navView.layoutParams = navParams
 
-        // Программно создаём меню
+        // Username и разделитель как header
+        val headerLayout = LinearLayout(this)
+        headerLayout.orientation = LinearLayout.VERTICAL
+        headerLayout.setPadding(32, 64, 32, 16)
+        val user = AuthLoadingActivity.userMe
+        val usernameView = TextView(this)
+        usernameView.text = user?.username ?: "Пользователь"
+        usernameView.textSize = 18f
+        usernameView.setPadding(0, 0, 0, 16)
+        headerLayout.addView(usernameView)
+        // Divider
+        val divider = View(this)
+        val params = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2)
+        divider.layoutParams = params
+        divider.setBackgroundColor(0xFFCCCCCC.toInt())
+        headerLayout.addView(divider)
+        navView.addHeaderView(headerLayout)
+        // Основные пункты
         val menu: Menu = navView.menu
         menu.add("Профиль")
         menu.add("Список пользователей")
-        menu.add("Выйти")
+        val logoutItem = menu.add("Выйти")
+        navView.setNavigationItemSelectedListener { item ->
+            when (item.title) {
+                "Выйти" -> {
+                    val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                    val baseUrl = prefs.getString("server_url", "") ?: ""
+                    CoroutineScope(Dispatchers.Main).launch {
+                        val api = RetrofitInstance.getApiService(baseUrl, this@StaffMainMenuActivity)
+                        try {
+                            val response = api.logout()
+                            if (response.code() == 204) {
+                                prefs.edit().remove("auth_token").apply()
+                                startActivity(Intent(this@StaffMainMenuActivity, AuthActivity::class.java))
+                                finish()
+                            } else {
+                                showErrorDialog("Ошибка выхода: ${response.code()}")
+                            }
+                        } catch (e: Exception) {
+                            showErrorDialog("Ошибка сети: ${e.message}")
+                        }
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
 
         drawerLayout.addView(navView)
         setContentView(drawerLayout)
@@ -69,5 +120,13 @@ class StaffMainMenuActivity : AppCompatActivity() {
         )
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
+    }
+
+    private fun showErrorDialog(message: String) {
+        AlertDialog.Builder(this)
+            .setTitle("Ошибка")
+            .setMessage(message)
+            .setPositiveButton("ОК", null)
+            .show()
     }
 } 

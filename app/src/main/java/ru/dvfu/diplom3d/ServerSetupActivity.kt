@@ -58,7 +58,7 @@ class ServerSetupActivity : ComponentActivity() {
     private suspend fun checkServer(url: String): Boolean {
         Log.d("ServerSetup", "Пробуем подключиться к серверу: $url/api/v1/mobile/meta (Retrofit)")
         return try {
-            val api = RetrofitInstance.getApiService(url)
+            val api = RetrofitInstance.getApiService(url, this@ServerSetupActivity)
             val response = api.checkServer()
             val success = response.isSuccessful
             Log.d("ServerSetup", "Ответ сервера (Retrofit): код ${response.code()}, успешность: $success")

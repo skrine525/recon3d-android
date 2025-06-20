@@ -60,7 +60,7 @@ class AuthActivity : FragmentActivity() {
             CoroutineScope(Dispatchers.Main).launch {
                 val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
                 val baseUrl = prefs.getString("server_url", "") ?: ""
-                val api = RetrofitInstance.getApiService(baseUrl)
+                val api = RetrofitInstance.getApiService(baseUrl, this@AuthActivity)
                 try {
                     val response = api.register(RegisterRequest(username, password, rePassword))
                     if (response.code() == 201) {
@@ -102,7 +102,7 @@ class AuthActivity : FragmentActivity() {
             CoroutineScope(Dispatchers.Main).launch {
                 val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
                 val baseUrl = prefs.getString("server_url", "") ?: ""
-                val api = RetrofitInstance.getApiService(baseUrl)
+                val api = RetrofitInstance.getApiService(baseUrl, this@AuthActivity)
                 try {
                     val response = api.login(LoginRequest(username, password))
                     if (response.isSuccessful) {

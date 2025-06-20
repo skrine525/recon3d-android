@@ -3,7 +3,6 @@ package ru.dvfu.diplom3d.api
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.Header
 import retrofit2.http.POST
 
 interface ApiService {
@@ -21,7 +20,10 @@ interface ApiService {
     ): Response<RegisterResponse>
 
     @GET("/api/v1/users/me/")
-    suspend fun getMe(@Header("Authorization") authHeader: String): Response<UserMeResponse>
+    suspend fun getMe(): Response<UserMeResponse>
+
+    @POST("/api/v1/token/logout/")
+    suspend fun logout(): Response<Void>
 }
 
 // Примеры моделей для login/register

@@ -40,10 +40,9 @@ class AuthLoadingActivity : AppCompatActivity() {
         val baseUrl = prefs.getString("server_url", "") ?: ""
         if (!token.isNullOrEmpty()) {
             CoroutineScope(Dispatchers.Main).launch {
-                val api = RetrofitInstance.getApiService(baseUrl)
+                val api = ru.dvfu.diplom3d.api.RetrofitInstance.getApiService(baseUrl, this@AuthLoadingActivity)
                 try {
-                    val authHeader = "Token $token"
-                    val response = api.getMe(authHeader)
+                    val response = api.getMe()
                     if (response.isSuccessful) {
                         val user = response.body()
                         userMe = user // сохраняем во временное хранилище
