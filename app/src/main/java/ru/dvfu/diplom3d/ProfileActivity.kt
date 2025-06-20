@@ -239,6 +239,7 @@ class ProfileActivity : AppCompatActivity() {
                     email.setText(user?.email ?: "")
                 } else if (response.code() == 401) {
                     prefs.edit().remove("auth_token").apply()
+                    android.widget.Toast.makeText(this@ProfileActivity, "Авторизационные данные утратили актуальность", android.widget.Toast.LENGTH_LONG).show()
                     val intent = android.content.Intent(this@ProfileActivity, MainActivity::class.java)
                     intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
                     startActivity(intent)
@@ -270,6 +271,7 @@ class ProfileActivity : AppCompatActivity() {
                         android.widget.Toast.makeText(this@ProfileActivity, "Данные успешно обновлены", android.widget.Toast.LENGTH_SHORT).show()
                     } else if (response.code() == 401) {
                         prefs.edit().remove("auth_token").apply()
+                        android.widget.Toast.makeText(this@ProfileActivity, "Авторизационные данные утратили актуальность", android.widget.Toast.LENGTH_LONG).show()
                         val intent = android.content.Intent(this@ProfileActivity, MainActivity::class.java)
                         intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
                         startActivity(intent)
@@ -337,6 +339,7 @@ class ProfileActivity : AppCompatActivity() {
                         repeatPassword.setText("")
                     } else if (response.code() == 401) {
                         prefs.edit().remove("auth_token").apply()
+                        android.widget.Toast.makeText(this@ProfileActivity, "Авторизационные данные утратили актуальность", android.widget.Toast.LENGTH_LONG).show()
                         val intent = android.content.Intent(this@ProfileActivity, MainActivity::class.java)
                         intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
                         startActivity(intent)

@@ -54,6 +54,7 @@ class AuthLoadingActivity : AppCompatActivity() {
                         finish()
                     } else if (response.code() == 401) {
                         prefs.edit().remove("auth_token").apply()
+                        android.widget.Toast.makeText(this@AuthLoadingActivity, "Авторизационные данные утратили актуальность", android.widget.Toast.LENGTH_LONG).show()
                         val intent = Intent(this@AuthLoadingActivity, MainActivity::class.java)
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                         startActivity(intent)
