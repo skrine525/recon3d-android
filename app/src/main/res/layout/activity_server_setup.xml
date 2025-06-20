@@ -1,54 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="24dp"
-    android:background="#FFFFFF">
+    android:layout_height="match_parent">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Адрес сервера"
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp"
-        android:gravity="start" />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp"
+        android:background="#FFFFFF">
 
-    <EditText
-        android:id="@+id/editTextServerUrl"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="https://dev.radabot.ru"
-        android:hint="Введите адрес сервера"
-        android:inputType="textUri"
-        android:layout_marginBottom="8dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Пример: http://192.168.1.100:8080"
-        android:textSize="14sp"
-        android:textColor="#888888"
-        android:layout_marginBottom="16dp" />
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <Button
-            android:id="@+id/buttonConfirm"
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Подтвердить" />
+            android:text="Адрес сервера"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp"
+            android:gravity="start" />
 
+        <EditText
+            android:id="@+id/editTextServerUrl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="https://dev.radabot.ru"
+            android:hint="Введите адрес сервера"
+            android:inputType="textUri"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Пример: http://192.168.1.100:8080"
+            android:textSize="14sp"
+            android:textColor="#888888"
+            android:layout_marginBottom="16dp" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/buttonConfirm"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Подтвердить" />
+
+            <ProgressBar
+                android:id="@+id/progressBarLoading"
+                style="?android:attr/progressBarStyleSmall"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+        </FrameLayout>
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/fullScreenLoading"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
         <ProgressBar
-            android:id="@+id/progressBarLoading"
-            style="?android:attr/progressBarStyleSmall"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_gravity="center"
-            android:visibility="gone" />
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center" />
     </FrameLayout>
 
-</LinearLayout> 
+</FrameLayout> 

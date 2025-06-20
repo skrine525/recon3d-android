@@ -3,6 +3,7 @@ package ru.dvfu.diplom3d
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
@@ -21,6 +22,7 @@ class ServerSetupActivity : ComponentActivity() {
     private lateinit var editText: EditText
     private lateinit var button: Button
     private lateinit var progressBar: ProgressBar
+    private lateinit var fullScreenLoading: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,6 +30,7 @@ class ServerSetupActivity : ComponentActivity() {
         editText = findViewById(R.id.editTextServerUrl)
         button = findViewById(R.id.buttonConfirm)
         progressBar = findViewById(R.id.progressBarLoading)
+        fullScreenLoading = findViewById(R.id.fullScreenLoading)
 
         button.setOnClickListener {
             val url = editText.text.toString().trim().removeSuffix("/")
@@ -36,14 +39,16 @@ class ServerSetupActivity : ComponentActivity() {
                 Toast.makeText(this, "Введите адрес сервера", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            button.isEnabled = false
+            button.isClickable = false
             button.text = ""
             progressBar.visibility = ProgressBar.VISIBLE
+            fullScreenLoading.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.Main).launch {
                 val result = checkServer(url)
-                button.isEnabled = true
+                button.isClickable = true
                 button.text = "Подтвердить"
                 progressBar.visibility = ProgressBar.GONE
+                fullScreenLoading.visibility = View.GONE
                 if (result) {
                     getSharedPreferences("app_prefs", MODE_PRIVATE).edit().putString("server_url", url).apply()
                     startActivity(Intent(this@ServerSetupActivity, AuthActivity::class.java))

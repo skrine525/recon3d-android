@@ -116,6 +116,13 @@ class StaffMainMenuActivity : AppCompatActivity() {
                                         dialog.dismiss()
                                         startActivity(Intent(this@StaffMainMenuActivity, AuthActivity::class.java))
                                         finish()
+                                    } else if (response.code() == 401) {
+                                        dialog.dismiss()
+                                        prefs.edit().remove("auth_token").apply()
+                                        val intent = Intent(this@StaffMainMenuActivity, MainActivity::class.java)
+                                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                        startActivity(intent)
+                                        finish()
                                     } else {
                                         dialog.dismiss()
                                         showErrorDialog("Ошибка выхода: ${response.code()}")

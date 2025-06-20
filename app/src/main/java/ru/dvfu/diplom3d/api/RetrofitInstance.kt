@@ -25,7 +25,12 @@ object RetrofitInstance {
                 if (AUTH_ENDPOINTS.any { url.contains(it) }) {
                     requestBuilder.header("Authorization", "Token $token")
                 }
-                chain.proceed(requestBuilder.build())
+                val response = chain.proceed(requestBuilder.build())
+                if (AUTH_ENDPOINTS.any { url.contains(it) } && response.code == 401 && context != null) {
+                    context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+                        .edit().remove("auth_token").apply()
+                }
+                response
             }
         }
         val retrofit = Retrofit.Builder()

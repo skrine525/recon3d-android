@@ -52,7 +52,16 @@ class AuthLoadingActivity : AppCompatActivity() {
                             startActivity(Intent(this@AuthLoadingActivity, UserMainMenuActivity::class.java))
                         }
                         finish()
+                    } else if (response.code() == 401) {
+                        prefs.edit().remove("auth_token").apply()
+                        val intent = Intent(this@AuthLoadingActivity, MainActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        startActivity(intent)
+                        finish()
                     } else {
+                        val errorBody = response.errorBody()?.string()
+                        android.util.Log.e("AuthLoading", "getMe error: code=${response.code()} body=$errorBody")
+                        android.widget.Toast.makeText(this@AuthLoadingActivity, "Ошибка getMe: ${response.code()}\n$errorBody", android.widget.Toast.LENGTH_LONG).show()
                         startActivity(Intent(this@AuthLoadingActivity, AuthActivity::class.java))
                         finish()
                     }
