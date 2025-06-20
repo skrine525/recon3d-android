@@ -29,7 +29,7 @@
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity android:name=".UserMainMenuActivity" />
         <activity android:name=".UserListActivity" android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        <activity android:name=".ProfileActivity" android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity android:name=".ProfileActivity" android:theme="@style/Theme.Diplom3D.NoActionBar" />
 
     </application>
 

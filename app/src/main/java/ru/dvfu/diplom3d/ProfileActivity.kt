@@ -10,7 +10,7 @@ import android.widget.TextView
 import android.widget.Button
 import android.view.ViewGroup
 import android.view.View
-import androidx.cardview.widget.CardView
+import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -57,7 +57,7 @@ class ProfileActivity : AppCompatActivity() {
         layout.addView(content)
 
         // --- CardView: Основная информация ---
-        val infoCard = CardView(this)
+        val infoCard = MaterialCardView(this)
         val infoCardParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         infoCardParams.bottomMargin = 32
         infoCard.layoutParams = infoCardParams
@@ -80,18 +80,21 @@ class ProfileActivity : AppCompatActivity() {
 
         val firstNameLayout = TextInputLayout(this)
         firstNameLayout.hint = "Имя"
+        firstNameLayout.boxBackgroundMode = 0
         val firstName = TextInputEditText(this)
         firstNameLayout.addView(firstName)
         infoLayout.addView(firstNameLayout)
 
         val lastNameLayout = TextInputLayout(this)
         lastNameLayout.hint = "Фамилия"
+        lastNameLayout.boxBackgroundMode = 0
         val lastName = TextInputEditText(this)
         lastNameLayout.addView(lastName)
         infoLayout.addView(lastNameLayout)
 
         val emailLayout = TextInputLayout(this)
         emailLayout.hint = "Email"
+        emailLayout.boxBackgroundMode = 0
         val email = TextInputEditText(this)
         email.inputType = android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
         emailLayout.addView(email)
@@ -109,7 +112,7 @@ class ProfileActivity : AppCompatActivity() {
         content.addView(infoCard)
 
         // --- CardView: Безопасность ---
-        val securityCard = CardView(this)
+        val securityCard = MaterialCardView(this)
         val securityCardParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         securityCard.layoutParams = securityCardParams
         securityCard.radius = 24f
@@ -131,6 +134,7 @@ class ProfileActivity : AppCompatActivity() {
 
         val oldPasswordLayout = TextInputLayout(this)
         oldPasswordLayout.hint = "Старый пароль"
+        oldPasswordLayout.boxBackgroundMode = 0
         val oldPassword = TextInputEditText(this)
         oldPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
         oldPasswordLayout.addView(oldPassword)
@@ -138,6 +142,7 @@ class ProfileActivity : AppCompatActivity() {
 
         val newPasswordLayout = TextInputLayout(this)
         newPasswordLayout.hint = "Новый пароль"
+        newPasswordLayout.boxBackgroundMode = 0
         val newPassword = TextInputEditText(this)
         newPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
         newPasswordLayout.addView(newPassword)
@@ -145,6 +150,7 @@ class ProfileActivity : AppCompatActivity() {
 
         val repeatPasswordLayout = TextInputLayout(this)
         repeatPasswordLayout.hint = "Повторите новый пароль"
+        repeatPasswordLayout.boxBackgroundMode = 0
         val repeatPassword = TextInputEditText(this)
         repeatPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
         repeatPasswordLayout.addView(repeatPassword)
