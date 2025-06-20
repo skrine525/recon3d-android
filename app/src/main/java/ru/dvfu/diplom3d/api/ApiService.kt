@@ -34,4 +34,12 @@ data class LoginResponse(val auth_token: String)
 data class RegisterRequest(val username: String, val password: String, val re_password: String)
 data class RegisterResponse(val email: String, val username: String, val id: Int)
 
-data class UserMeResponse(val id: Int, val username: String, val is_staff: Boolean) 
+data class UserMeResponse(
+    val id: Int,
+    val username: String,
+    val email: String,
+    val first_name: String,
+    val last_name: String,
+    val is_staff: Boolean,
+    val display_name: String
+) 

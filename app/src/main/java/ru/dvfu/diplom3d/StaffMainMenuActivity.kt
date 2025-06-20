@@ -67,7 +67,7 @@ class StaffMainMenuActivity : AppCompatActivity() {
         headerLayout.setPadding(32, 64, 32, 16)
         val user = AuthLoadingActivity.userMe
         val usernameView = TextView(this)
-        usernameView.text = user?.username ?: "Пользователь"
+        usernameView.text = user?.display_name ?: "Пользователь"
         usernameView.textSize = 18f
         usernameView.setPadding(0, 0, 0, 16)
         headerLayout.addView(usernameView)
