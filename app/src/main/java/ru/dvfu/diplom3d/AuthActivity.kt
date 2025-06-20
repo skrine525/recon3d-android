@@ -32,19 +32,6 @@ class AuthActivity : FragmentActivity() {
         }
 
         val baseUrl = prefs.getString("server_url", "") ?: ""
-        if (!token.isNullOrEmpty()) {
-            CoroutineScope(Dispatchers.Main).launch {
-                val api = RetrofitInstance.getApiService(baseUrl)
-                try {
-                    val authHeader = "Token $token"
-                    val response = api.getMe(authHeader)
-                    if (response.isSuccessful) {
-                        goToMainMenu()
-                        return@launch
-                    }
-                } catch (_: Exception) {}
-            }
-        }
 
         // Показываем форму входа, скрываем регистрацию
         showLoginForm()
@@ -144,10 +131,5 @@ class AuthActivity : FragmentActivity() {
             .edit()
             .putString("auth_token", token)
             .apply()
-    }
-
-    private fun goToMainMenu() {
-        startActivity(Intent(this, MainMenuActivity::class.java))
-        finish()
     }
 } 
