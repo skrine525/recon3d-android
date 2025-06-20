@@ -11,6 +11,10 @@ import android.widget.Button
 import android.view.ViewGroup
 import android.view.View
 import androidx.cardview.widget.CardView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import ru.dvfu.diplom3d.api.RetrofitInstance
 
 class ProfileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -120,7 +124,38 @@ class ProfileActivity : AppCompatActivity() {
 
         content.addView(securityCard)
 
+        // --- Полноэкранный ProgressBar ---
+        val fullScreenLoading = FrameLayout(this)
+        fullScreenLoading.setBackgroundColor(0x80000000.toInt())
+        fullScreenLoading.visibility = View.VISIBLE
+        fullScreenLoading.isClickable = true
+        fullScreenLoading.isFocusable = true
+        val progressBar = android.widget.ProgressBar(this)
+        val pbParams = FrameLayout.LayoutParams(128, 128)
+        pbParams.gravity = android.view.Gravity.CENTER
+        progressBar.layoutParams = pbParams
+        fullScreenLoading.addView(progressBar)
+        layout.addView(fullScreenLoading)
+
         setContentView(layout)
         setSupportActionBar(toolbar)
+
+        // --- Загрузка данных пользователя ---
+        CoroutineScope(Dispatchers.Main).launch {
+            val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+            val baseUrl = prefs.getString("server_url", "") ?: ""
+            val api = RetrofitInstance.getApiService(baseUrl, this@ProfileActivity)
+            try {
+                val response = api.getMe()
+                if (response.isSuccessful) {
+                    val user = response.body()
+                    firstName.setText(user?.first_name ?: "")
+                    lastName.setText(user?.last_name ?: "")
+                    email.setText(user?.email ?: "")
+                }
+            } finally {
+                fullScreenLoading.visibility = View.GONE
+            }
+        }
     }
 } 
