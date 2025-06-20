@@ -24,7 +24,7 @@ class AuthLoadingActivity : AppCompatActivity() {
         layout.orientation = LinearLayout.VERTICAL
         layout.gravity = Gravity.CENTER
         val textView = TextView(this)
-        textView.text = "Загрузка"
+        textView.text = "Загрузка данных пользователя"
         textView.textSize = 24f
         textView.gravity = Gravity.CENTER
         val progressBar = android.widget.ProgressBar(this)
