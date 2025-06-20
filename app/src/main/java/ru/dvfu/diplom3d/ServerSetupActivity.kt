@@ -40,7 +40,6 @@ class ServerSetupActivity : ComponentActivity() {
                 return@setOnClickListener
             }
             button.isClickable = false
-            button.text = ""
             progressBar.visibility = ProgressBar.VISIBLE
             fullScreenLoading.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.Main).launch {

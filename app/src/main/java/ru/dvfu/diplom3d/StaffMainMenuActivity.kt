@@ -100,38 +100,16 @@ class StaffMainMenuActivity : AppCompatActivity() {
                         val positive = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
                         val negative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
                         positive.setOnClickListener {
-                            // Скрываем кнопки, меняем текст на 'Выход...'
                             positive.isEnabled = false
                             negative.isEnabled = false
                             dialog.setMessage("Выход...")
-                            // Запуск выхода
                             val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
-                            val baseUrl = prefs.getString("server_url", "") ?: ""
-                            CoroutineScope(Dispatchers.Main).launch {
-                                val api = RetrofitInstance.getApiService(baseUrl, this@StaffMainMenuActivity)
-                                try {
-                                    val response = api.logout()
-                                    if (response.code() == 204) {
-                                        prefs.edit().remove("auth_token").apply()
-                                        dialog.dismiss()
-                                        startActivity(Intent(this@StaffMainMenuActivity, AuthActivity::class.java))
-                                        finish()
-                                    } else if (response.code() == 401) {
-                                        dialog.dismiss()
-                                        prefs.edit().remove("auth_token").apply()
-                                        val intent = Intent(this@StaffMainMenuActivity, MainActivity::class.java)
-                                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                                        startActivity(intent)
-                                        finish()
-                                    } else {
-                                        dialog.dismiss()
-                                        showErrorDialog("Ошибка выхода: ${response.code()}")
-                                    }
-                                } catch (e: Exception) {
-                                    dialog.dismiss()
-                                    showErrorDialog("Ошибка сети: ${e.message}")
-                                }
-                            }
+                            prefs.edit().clear().apply()
+                            dialog.dismiss()
+                            val intent = Intent(this@StaffMainMenuActivity, MainActivity::class.java)
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                            startActivity(intent)
+                            finish()
                         }
                     }
                     dialog.show()
