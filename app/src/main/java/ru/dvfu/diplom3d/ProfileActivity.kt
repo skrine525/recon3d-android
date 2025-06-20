@@ -4,6 +4,13 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Button
+import android.view.ViewGroup
+import android.view.View
+import androidx.cardview.widget.CardView
 
 class ProfileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -17,6 +24,102 @@ class ProfileActivity : AppCompatActivity() {
             Toolbar.LayoutParams.WRAP_CONTENT
         )
         layout.addView(toolbar)
+
+        // Основной вертикальный layout
+        val content = LinearLayout(this)
+        content.orientation = LinearLayout.VERTICAL
+        val contentParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        )
+        contentParams.topMargin = resources.getDimensionPixelSize(com.google.android.material.R.dimen.abc_action_bar_default_height_material)
+        content.layoutParams = contentParams
+        content.setPadding(32, 48, 32, 32)
+        layout.addView(content)
+
+        // --- CardView: Основная информация ---
+        val infoCard = CardView(this)
+        val infoCardParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        infoCardParams.bottomMargin = 32
+        infoCard.layoutParams = infoCardParams
+        infoCard.radius = 24f
+        infoCard.cardElevation = 8f
+        infoCard.setContentPadding(32, 32, 32, 32)
+
+        val infoLayout = LinearLayout(this)
+        infoLayout.orientation = LinearLayout.VERTICAL
+        infoCard.addView(infoLayout)
+
+        val infoTitle = TextView(this)
+        infoTitle.text = "Основная информация"
+        infoTitle.textSize = 18f
+        infoTitle.setPadding(0, 0, 0, 16)
+        infoLayout.addView(infoTitle)
+
+        val firstName = EditText(this)
+        firstName.hint = "Имя"
+        infoLayout.addView(firstName)
+
+        val lastName = EditText(this)
+        lastName.hint = "Фамилия"
+        infoLayout.addView(lastName)
+
+        val email = EditText(this)
+        email.hint = "Email"
+        email.inputType = android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+        infoLayout.addView(email)
+
+        val saveInfoBtn = Button(this)
+        saveInfoBtn.text = "Сохранить"
+        val saveInfoParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        saveInfoParams.topMargin = 16
+        saveInfoBtn.layoutParams = saveInfoParams
+        infoLayout.addView(saveInfoBtn)
+
+        content.addView(infoCard)
+
+        // --- CardView: Безопасность ---
+        val securityCard = CardView(this)
+        val securityCardParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        securityCard.layoutParams = securityCardParams
+        securityCard.radius = 24f
+        securityCard.cardElevation = 8f
+        securityCard.setContentPadding(32, 32, 32, 32)
+
+        val securityLayout = LinearLayout(this)
+        securityLayout.orientation = LinearLayout.VERTICAL
+        securityCard.addView(securityLayout)
+
+        val securityTitle = TextView(this)
+        securityTitle.text = "Безопасность"
+        securityTitle.textSize = 18f
+        securityTitle.setPadding(0, 0, 0, 16)
+        securityLayout.addView(securityTitle)
+
+        val oldPassword = EditText(this)
+        oldPassword.hint = "Старый пароль"
+        oldPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        securityLayout.addView(oldPassword)
+
+        val newPassword = EditText(this)
+        newPassword.hint = "Новый пароль"
+        newPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        securityLayout.addView(newPassword)
+
+        val repeatPassword = EditText(this)
+        repeatPassword.hint = "Повторите новый пароль"
+        repeatPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        securityLayout.addView(repeatPassword)
+
+        val savePasswordBtn = Button(this)
+        savePasswordBtn.text = "Сохранить"
+        val savePassParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        savePassParams.topMargin = 16
+        savePasswordBtn.layoutParams = savePassParams
+        securityLayout.addView(savePasswordBtn)
+
+        content.addView(securityCard)
+
         setContentView(layout)
         setSupportActionBar(toolbar)
     }
