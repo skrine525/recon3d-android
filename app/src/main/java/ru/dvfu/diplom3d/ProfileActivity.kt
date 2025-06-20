@@ -15,6 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ru.dvfu.diplom3d.api.RetrofitInstance
+import org.json.JSONObject
 
 class ProfileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -157,5 +158,63 @@ class ProfileActivity : AppCompatActivity() {
                 fullScreenLoading.visibility = View.GONE
             }
         }
+
+        saveInfoBtn.setOnClickListener {
+            fullScreenLoading.visibility = View.VISIBLE
+            CoroutineScope(Dispatchers.Main).launch {
+                val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                val baseUrl = prefs.getString("server_url", "") ?: ""
+                val api = RetrofitInstance.getApiService(baseUrl, this@ProfileActivity)
+                try {
+                    val response = api.updateMe(
+                        ru.dvfu.diplom3d.api.UpdateMeRequest(
+                            firstName.text.toString(),
+                            lastName.text.toString(),
+                            email.text.toString()
+                        )
+                    )
+                    if (response.isSuccessful) {
+                        val user = response.body()
+                        ru.dvfu.diplom3d.AuthLoadingActivity.userMe = user
+                        android.widget.Toast.makeText(this@ProfileActivity, "Данные успешно обновлены", android.widget.Toast.LENGTH_SHORT).show()
+                    } else if (response.code() == 400) {
+                        val errorBody = response.errorBody()?.string()
+                        val errorMsg = StringBuilder()
+                        val fieldMap = mapOf(
+                            "email" to "Email",
+                            "first_name" to "Имя",
+                            "last_name" to "Фамилия"
+                        )
+                        try {
+                            val json = JSONObject(errorBody ?: "")
+                            for (key in json.keys()) {
+                                val arr = json.getJSONArray(key)
+                                val field = fieldMap[key] ?: key
+                                for (i in 0 until arr.length()) {
+                                    errorMsg.append("$field: ${arr.getString(i)}\n")
+                                }
+                            }
+                        } catch (e: Exception) {
+                            errorMsg.append(errorBody)
+                        }
+                        showErrorDialog(errorMsg.toString())
+                    } else {
+                        showErrorDialog("Ошибка: ${response.code()}\n${response.errorBody()?.string()}")
+                    }
+                } catch (e: Exception) {
+                    showErrorDialog("Ошибка сети: ${e.message}")
+                } finally {
+                    fullScreenLoading.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    private fun showErrorDialog(message: String) {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Ошибка")
+            .setMessage(message)
+            .setPositiveButton("ОК", null)
+            .show()
     }
 } 

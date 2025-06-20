@@ -4,6 +4,9 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.FieldMap
+import retrofit2.http.FormUrlEncoded
 
 interface ApiService {
     @GET("/api/v1/common/meta")
@@ -24,6 +27,9 @@ interface ApiService {
 
     @POST("/api/v1/token/logout/")
     suspend fun logout(): Response<Void>
+
+    @PUT("/api/v1/users/me/")
+    suspend fun updateMe(@Body body: UpdateMeRequest): Response<UserMeResponse>
 }
 
 // Примеры моделей для login/register
@@ -42,4 +48,10 @@ data class UserMeResponse(
     val last_name: String,
     val is_staff: Boolean,
     val display_name: String
+)
+
+data class UpdateMeRequest(
+    val first_name: String,
+    val last_name: String,
+    val email: String
 ) 
