@@ -87,6 +87,8 @@ class ProfileActivity : AppCompatActivity() {
 
         val saveInfoBtn = Button(this)
         saveInfoBtn.text = "Сохранить"
+        saveInfoBtn.setBackgroundResource(R.drawable.green_button)
+        saveInfoBtn.setTextColor(0xFFFFFFFF.toInt())
         val saveInfoParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         saveInfoParams.topMargin = 16
         saveInfoBtn.layoutParams = saveInfoParams
@@ -138,6 +140,8 @@ class ProfileActivity : AppCompatActivity() {
 
         val savePasswordBtn = Button(this)
         savePasswordBtn.text = "Сохранить"
+        savePasswordBtn.setBackgroundResource(R.drawable.green_button)
+        savePasswordBtn.setTextColor(0xFFFFFFFF.toInt())
         val savePassParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         savePassParams.topMargin = 16
         savePasswordBtn.layoutParams = savePassParams
