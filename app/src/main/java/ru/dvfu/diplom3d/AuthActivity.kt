@@ -28,6 +28,13 @@ class AuthActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        val token = prefs.getString("auth_token", null)
+        if (!token.isNullOrEmpty()) {
+            startActivity(Intent(this, AuthLoadingActivity::class.java))
+            finish()
+            return
+        }
         // Корневой layout
         val layout = FrameLayout(this)
         // Основной вертикальный layout
@@ -188,7 +195,6 @@ class AuthActivity : FragmentActivity() {
         }
 
         // --- Логика ---
-        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
         val baseUrl = prefs.getString("server_url", "") ?: ""
 
         loginBtn.setOnClickListener {
