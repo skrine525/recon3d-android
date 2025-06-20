@@ -23,6 +23,8 @@ import kotlinx.coroutines.launch
 import ru.dvfu.diplom3d.api.RetrofitInstance
 
 class StaffMainMenuActivity : AppCompatActivity() {
+    private var usernameView: TextView? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -65,11 +67,10 @@ class StaffMainMenuActivity : AppCompatActivity() {
         val headerLayout = LinearLayout(this)
         headerLayout.orientation = LinearLayout.VERTICAL
         headerLayout.setPadding(32, 64, 32, 16)
-        val user = AuthLoadingActivity.userMe
-        val usernameView = TextView(this)
-        usernameView.text = user?.display_name ?: "Пользователь"
-        usernameView.textSize = 18f
-        usernameView.setPadding(0, 0, 0, 16)
+        usernameView = TextView(this)
+        usernameView?.text = AuthLoadingActivity.userMe?.display_name ?: "Пользователь"
+        usernameView?.textSize = 18f
+        usernameView?.setPadding(0, 0, 0, 16)
         headerLayout.addView(usernameView)
         // Divider
         val divider = View(this)
@@ -138,6 +139,13 @@ class StaffMainMenuActivity : AppCompatActivity() {
         )
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Обновить имя в сайдбаре
+        val user = AuthLoadingActivity.userMe
+        usernameView?.text = user?.display_name ?: "Пользователь"
     }
 
     private fun showErrorDialog(message: String) {
