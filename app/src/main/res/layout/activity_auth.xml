@@ -50,12 +50,25 @@
                 android:layout_marginBottom="16dp"
                 android:layout_gravity="center_horizontal" />
 
-            <Button
-                android:id="@+id/buttonLogin"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Войти"
-                android:layout_gravity="center_horizontal" />
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:id="@+id/buttonLogin"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Войти"
+                    android:layout_gravity="center_horizontal" />
+
+                <ProgressBar
+                    android:id="@+id/progressBarLogin"
+                    style="?android:attr/progressBarStyleSmall"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    android:visibility="gone" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/buttonShowRegister"
@@ -125,12 +138,25 @@
                 android:layout_marginBottom="16dp"
                 android:layout_gravity="center_horizontal" />
 
-            <Button
-                android:id="@+id/buttonRegister"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Зарегистрироваться"
-                android:layout_gravity="center_horizontal" />
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:id="@+id/buttonRegister"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Зарегистрироваться"
+                    android:layout_gravity="center_horizontal" />
+
+                <ProgressBar
+                    android:id="@+id/progressBarRegister"
+                    style="?android:attr/progressBarStyleSmall"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    android:visibility="gone" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/buttonShowLogin"

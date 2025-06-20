@@ -43,6 +43,9 @@ class AuthActivity : FragmentActivity() {
             showLoginForm()
         }
 
+        val progressBarLogin = binding.root.findViewById<android.widget.ProgressBar>(R.id.progressBarLogin)
+        val progressBarRegister = binding.root.findViewById<android.widget.ProgressBar>(R.id.progressBarRegister)
+
         binding.buttonRegister.setOnClickListener {
             val username = binding.editTextRegisterLogin.text.toString().trim()
             val password = binding.editTextRegisterPassword.text.toString()
@@ -51,6 +54,9 @@ class AuthActivity : FragmentActivity() {
                 Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            binding.buttonRegister.isEnabled = false
+            binding.buttonRegister.text = ""
+            progressBarRegister.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.Main).launch {
                 val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
                 val baseUrl = prefs.getString("server_url", "") ?: ""
@@ -75,6 +81,10 @@ class AuthActivity : FragmentActivity() {
                     }
                 } catch (e: Exception) {
                     showErrorDialog("Ошибка сети: ${e.message}")
+                } finally {
+                    binding.buttonRegister.isEnabled = true
+                    binding.buttonRegister.text = "Зарегистрироваться"
+                    progressBarRegister.visibility = View.GONE
                 }
             }
         }
@@ -86,6 +96,9 @@ class AuthActivity : FragmentActivity() {
                 Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            binding.buttonLogin.isEnabled = false
+            binding.buttonLogin.text = ""
+            progressBarLogin.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.Main).launch {
                 val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
                 val baseUrl = prefs.getString("server_url", "") ?: ""
@@ -103,6 +116,10 @@ class AuthActivity : FragmentActivity() {
                     }
                 } catch (e: Exception) {
                     showErrorDialog("Ошибка сети: ${e.message}")
+                } finally {
+                    binding.buttonLogin.isEnabled = true
+                    binding.buttonLogin.text = "Войти"
+                    progressBarLogin.visibility = View.GONE
                 }
             }
         }
