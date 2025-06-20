@@ -14,7 +14,7 @@ import ru.dvfu.diplom3d.api.RetrofitInstance
 class AuthLoadingActivity : AppCompatActivity() {
     companion object {
         // Временное хранилище для данных пользователя (очищается при перезапуске приложения)
-        var userMe: ru.dvfu.diplom3d.api.UserMeResponse? = null
+        var userMe: ru.dvfu.diplom3d.api.UserResponse? = null
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         // Убираем заголовок

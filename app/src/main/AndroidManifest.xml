@@ -28,8 +28,9 @@
             android:name=".StaffMainMenuActivity"
             android:theme="@style/Theme.Diplom3D.NoActionBar" />
         <activity android:name=".UserMainMenuActivity" android:theme="@style/Theme.Diplom3D.NoActionBar" />
-        <activity android:name=".UserListActivity" android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity android:name=".UserListActivity" android:theme="@style/Theme.Diplom3D.NoActionBar" />
         <activity android:name=".ProfileActivity" android:theme="@style/Theme.Diplom3D.NoActionBar" />
+        <activity android:name=".UserDetailActivity" android:theme="@style/Theme.Diplom3D.NoActionBar" />
 
     </application>
 

@@ -23,16 +23,19 @@ interface ApiService {
     ): Response<RegisterResponse>
 
     @GET("/api/v1/users/me/")
-    suspend fun getMe(): Response<UserMeResponse>
+    suspend fun getMe(): Response<UserResponse>
 
     @POST("/api/v1/token/logout/")
     suspend fun logout(): Response<Void>
 
     @PUT("/api/v1/users/me/")
-    suspend fun updateMe(@Body body: UpdateMeRequest): Response<UserMeResponse>
+    suspend fun updateMe(@Body body: UpdateMeRequest): Response<UserResponse>
 
     @POST("/api/v1/users/set_password/")
     suspend fun setPassword(@Body body: SetPasswordRequest): Response<Void>
+
+    @GET("/api/v1/users")
+    suspend fun getUsers(): Response<List<UserResponse>>
 }
 
 // Примеры моделей для login/register
@@ -43,7 +46,7 @@ data class LoginResponse(val auth_token: String)
 data class RegisterRequest(val username: String, val password: String, val re_password: String)
 data class RegisterResponse(val email: String, val username: String, val id: Int)
 
-data class UserMeResponse(
+data class UserResponse(
     val id: Int,
     val username: String,
     val email: String,

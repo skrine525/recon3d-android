@@ -9,9 +9,11 @@ import okhttp3.Request
 
 object RetrofitInstance {
     private val AUTH_ENDPOINTS = listOf(
-        "/api/v1/users/me/",
-        "/api/v1/token/logout/",
-        "/api/v1/users/set_password/"
+        "GET" to "/api/v1/users/me/",
+        "PUT" to "/api/v1/users/me/",
+        "POST" to "/api/v1/token/logout/",
+        "POST" to "/api/v1/users/set_password/",
+        "GET" to "/api/v1/users",
     )
 
     fun getApiService(baseUrl: String, context: Context? = null): ApiService {
@@ -23,11 +25,12 @@ object RetrofitInstance {
                 val original: Request = chain.request()
                 val url = original.url.toString()
                 val requestBuilder = original.newBuilder()
-                if (AUTH_ENDPOINTS.any { url.contains(it) }) {
+                val method = original.method.uppercase()
+                if (AUTH_ENDPOINTS.any { (m, endpoint) -> method == m && url.contains(endpoint) }) {
                     requestBuilder.header("Authorization", "Token $token")
                 }
                 val response = chain.proceed(requestBuilder.build())
-                if (AUTH_ENDPOINTS.any { url.contains(it) } && response.code == 401 && context != null) {
+                if (AUTH_ENDPOINTS.any { (m, endpoint) -> original.method.uppercase() == m && url.contains(endpoint) } && response.code == 401 && context != null) {
                     context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
                         .edit().remove("auth_token").apply()
                 }
