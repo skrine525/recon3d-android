@@ -7,9 +7,7 @@ import android.widget.TextView
 class UserMainMenuActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val textView = TextView(this)
-        textView.text = "Главное меню (Пользователь)"
-        textView.textSize = 24f
-        setContentView(textView)
+        supportActionBar?.title = "Режим пользователя"
+        setContentView(androidx.appcompat.widget.LinearLayoutCompat(this))
     }
 }
