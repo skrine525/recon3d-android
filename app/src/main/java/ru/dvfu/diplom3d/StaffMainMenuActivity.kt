@@ -77,6 +77,10 @@ class StaffMainMenuActivity : AppCompatActivity() {
         divider.layoutParams = params
         divider.setBackgroundColor(0xFFCCCCCC.toInt())
         headerLayout.addView(divider)
+        // Прогрессбар (скрыт по умолчанию)
+        val progressBar = android.widget.ProgressBar(this)
+        progressBar.visibility = View.GONE
+        headerLayout.addView(progressBar)
         navView.addHeaderView(headerLayout)
         // Основные пункты
         val menu: Menu = navView.menu
@@ -86,23 +90,44 @@ class StaffMainMenuActivity : AppCompatActivity() {
         navView.setNavigationItemSelectedListener { item ->
             when (item.title) {
                 "Выйти" -> {
-                    val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
-                    val baseUrl = prefs.getString("server_url", "") ?: ""
-                    CoroutineScope(Dispatchers.Main).launch {
-                        val api = RetrofitInstance.getApiService(baseUrl, this@StaffMainMenuActivity)
-                        try {
-                            val response = api.logout()
-                            if (response.code() == 204) {
-                                prefs.edit().remove("auth_token").apply()
-                                startActivity(Intent(this@StaffMainMenuActivity, AuthActivity::class.java))
-                                finish()
-                            } else {
-                                showErrorDialog("Ошибка выхода: ${response.code()}")
+                    val dialog = AlertDialog.Builder(this)
+                        .setTitle("Подтверждение")
+                        .setMessage("Вы действительно хотите выйти?")
+                        .setPositiveButton("Выйти", null)
+                        .setNegativeButton("Отмена", null)
+                        .create()
+                    dialog.setOnShowListener {
+                        val positive = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                        val negative = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+                        positive.setOnClickListener {
+                            // Скрываем кнопки, меняем текст на 'Выход...'
+                            positive.isEnabled = false
+                            negative.isEnabled = false
+                            dialog.setMessage("Выход...")
+                            // Запуск выхода
+                            val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                            val baseUrl = prefs.getString("server_url", "") ?: ""
+                            CoroutineScope(Dispatchers.Main).launch {
+                                val api = RetrofitInstance.getApiService(baseUrl, this@StaffMainMenuActivity)
+                                try {
+                                    val response = api.logout()
+                                    if (response.code() == 204) {
+                                        prefs.edit().remove("auth_token").apply()
+                                        dialog.dismiss()
+                                        startActivity(Intent(this@StaffMainMenuActivity, AuthActivity::class.java))
+                                        finish()
+                                    } else {
+                                        dialog.dismiss()
+                                        showErrorDialog("Ошибка выхода: ${response.code()}")
+                                    }
+                                } catch (e: Exception) {
+                                    dialog.dismiss()
+                                    showErrorDialog("Ошибка сети: ${e.message}")
+                                }
                             }
-                        } catch (e: Exception) {
-                            showErrorDialog("Ошибка сети: ${e.message}")
                         }
                     }
+                    dialog.show()
                     true
                 }
                 else -> false
