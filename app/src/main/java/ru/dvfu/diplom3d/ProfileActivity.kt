@@ -32,6 +32,18 @@ class ProfileActivity : AppCompatActivity() {
         )
         layout.addView(toolbar)
 
+        // --- Полноэкранный ProgressBar ---
+        val fullScreenLoading = FrameLayout(this)
+        fullScreenLoading.setBackgroundColor(0x80000000.toInt())
+        fullScreenLoading.visibility = View.GONE
+        fullScreenLoading.isClickable = true
+        fullScreenLoading.isFocusable = true
+        val progressBar = android.widget.ProgressBar(this)
+        val pbParams = FrameLayout.LayoutParams(128, 128)
+        pbParams.gravity = android.view.Gravity.CENTER
+        progressBar.layoutParams = pbParams
+        fullScreenLoading.addView(progressBar)
+
         // Основной вертикальный layout
         val content = LinearLayout(this)
         content.orientation = LinearLayout.VERTICAL
@@ -147,19 +159,52 @@ class ProfileActivity : AppCompatActivity() {
         savePasswordBtn.layoutParams = savePassParams
         securityLayout.addView(savePasswordBtn)
 
+        // Кнопка "Выйти со всех устройств"
+        val logoutAllBtn = Button(this)
+        logoutAllBtn.text = "Выйти со всех устройств"
+        logoutAllBtn.setBackgroundResource(R.drawable.red_button)
+        logoutAllBtn.setTextColor(0xFFFFFFFF.toInt())
+        val logoutAllParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        logoutAllParams.topMargin = 24
+        logoutAllBtn.layoutParams = logoutAllParams
+        securityLayout.addView(logoutAllBtn)
+
+        logoutAllBtn.setOnClickListener {
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Подтверждение")
+                .setMessage("Вы действительно хотите выйти со всех устройств?")
+                .setPositiveButton("Выйти") { _, _ ->
+                    fullScreenLoading.visibility = View.VISIBLE
+                    CoroutineScope(Dispatchers.Main).launch {
+                        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                        val baseUrl = prefs.getString("server_url", "") ?: ""
+                        val api = RetrofitInstance.getApiService(baseUrl, this@ProfileActivity)
+                        try {
+                            val response = api.logout()
+                            prefs.edit().clear().apply()
+                            val intent = android.content.Intent(this@ProfileActivity, MainActivity::class.java)
+                            intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                            startActivity(intent)
+                            finish()
+                        } catch (e: Exception) {
+                            showErrorDialog("Ошибка выхода: ${e.message}")
+                        } finally {
+                            fullScreenLoading.visibility = View.GONE
+                        }
+                    }
+                }
+                .setNegativeButton("Отмена", null)
+                .show()
+        }
+
         content.addView(securityCard)
 
-        // --- Полноэкранный ProgressBar ---
-        val fullScreenLoading = FrameLayout(this)
-        fullScreenLoading.setBackgroundColor(0x80000000.toInt())
-        fullScreenLoading.visibility = View.VISIBLE
-        fullScreenLoading.isClickable = true
-        fullScreenLoading.isFocusable = true
-        val progressBar = android.widget.ProgressBar(this)
-        val pbParams = FrameLayout.LayoutParams(128, 128)
-        pbParams.gravity = android.view.Gravity.CENTER
-        progressBar.layoutParams = pbParams
-        fullScreenLoading.addView(progressBar)
+        // В самом конце, чтобы overlay был поверх всего
+        val overlayParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        )
+        fullScreenLoading.layoutParams = overlayParams
         layout.addView(fullScreenLoading)
 
         setContentView(layout)
