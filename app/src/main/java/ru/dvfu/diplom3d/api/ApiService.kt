@@ -30,6 +30,9 @@ interface ApiService {
 
     @PUT("/api/v1/users/me/")
     suspend fun updateMe(@Body body: UpdateMeRequest): Response<UserMeResponse>
+
+    @POST("/api/v1/users/set_password/")
+    suspend fun setPassword(@Body body: SetPasswordRequest): Response<Void>
 }
 
 // Примеры моделей для login/register
@@ -54,4 +57,9 @@ data class UpdateMeRequest(
     val first_name: String,
     val last_name: String,
     val email: String
+)
+
+data class SetPasswordRequest(
+    val current_password: String,
+    val new_password: String
 ) 

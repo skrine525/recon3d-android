@@ -208,6 +208,65 @@ class ProfileActivity : AppCompatActivity() {
                 }
             }
         }
+
+        savePasswordBtn.setOnClickListener {
+            val oldPass = oldPassword.text.toString()
+            val newPass = newPassword.text.toString()
+            val repeatPass = repeatPassword.text.toString()
+            if (oldPass.isEmpty() || newPass.isEmpty() || repeatPass.isEmpty()) {
+                showErrorDialog("Заполните все поля для смены пароля")
+                return@setOnClickListener
+            }
+            if (newPass != repeatPass) {
+                showErrorDialog("Новые пароли не совпадают")
+                return@setOnClickListener
+            }
+            fullScreenLoading.visibility = View.VISIBLE
+            CoroutineScope(Dispatchers.Main).launch {
+                val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                val baseUrl = prefs.getString("server_url", "") ?: ""
+                val api = RetrofitInstance.getApiService(baseUrl, this@ProfileActivity)
+                try {
+                    val response = api.setPassword(
+                        ru.dvfu.diplom3d.api.SetPasswordRequest(
+                            oldPass, newPass
+                        )
+                    )
+                    if (response.isSuccessful) {
+                        android.widget.Toast.makeText(this@ProfileActivity, "Пароль успешно изменён", android.widget.Toast.LENGTH_SHORT).show()
+                        oldPassword.text.clear()
+                        newPassword.text.clear()
+                        repeatPassword.text.clear()
+                    } else if (response.code() == 400) {
+                        val errorBody = response.errorBody()?.string()
+                        val errorMsg = StringBuilder()
+                        val fieldMap = mapOf(
+                            "current_password" to "Старый пароль",
+                            "new_password" to "Новый пароль"
+                        )
+                        try {
+                            val json = org.json.JSONObject(errorBody ?: "")
+                            for (key in json.keys()) {
+                                val arr = json.getJSONArray(key)
+                                val field = fieldMap[key] ?: key
+                                for (i in 0 until arr.length()) {
+                                    errorMsg.append("$field: ${arr.getString(i)}\n")
+                                }
+                            }
+                        } catch (e: Exception) {
+                            errorMsg.append(errorBody)
+                        }
+                        showErrorDialog(errorMsg.toString())
+                    } else {
+                        showErrorDialog("Ошибка: ${response.code()}\n${response.errorBody()?.string()}")
+                    }
+                } catch (e: Exception) {
+                    showErrorDialog("Ошибка сети: ${e.message}")
+                } finally {
+                    fullScreenLoading.visibility = View.GONE
+                }
+            }
+        }
     }
 
     private fun showErrorDialog(message: String) {

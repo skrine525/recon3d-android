@@ -10,7 +10,8 @@ import okhttp3.Request
 object RetrofitInstance {
     private val AUTH_ENDPOINTS = listOf(
         "/api/v1/users/me/",
-        "/api/v1/token/logout/"
+        "/api/v1/token/logout/",
+        "/api/v1/users/set_password/"
     )
 
     fun getApiService(baseUrl: String, context: Context? = null): ApiService {
