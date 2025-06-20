@@ -217,6 +217,7 @@ class ProfileActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         // --- Загрузка данных пользователя ---
+        fullScreenLoading.visibility = View.VISIBLE
         CoroutineScope(Dispatchers.Main).launch {
             val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
             val baseUrl = prefs.getString("server_url", "") ?: ""
