@@ -102,29 +102,66 @@ class UserDetailActivity : AppCompatActivity() {
                         val accountTitleParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
                         accountTitleParams.bottomMargin = 12
                         accountLayout.addView(accountTitle, accountTitleParams)
-                        fun makeRow(label: String, value: String): LinearLayout {
-                            val row = LinearLayout(this@UserDetailActivity)
-                            row.orientation = LinearLayout.HORIZONTAL
-                            val labelView = TextView(this@UserDetailActivity)
-                            labelView.text = label
-                            labelView.setTypeface(null, android.graphics.Typeface.BOLD)
-                            labelView.textSize = 16f
-                            labelView.setTextColor(0xFF444444.toInt())
-                            val valueView = TextView(this@UserDetailActivity)
-                            valueView.text = value
-                            valueView.textSize = 16f
-                            valueView.setTextColor(0xFF444444.toInt())
-                            row.addView(labelView)
-                            row.addView(valueView)
-                            return row
-                        }
-                        accountLayout.addView(makeRow("ID: ", user.id.toString()))
-                        accountLayout.addView(makeRow("Логин: ", user.username))
-                        accountLayout.addView(makeRow("Тип: ", when {
+                        val accountIdLabel = TextView(this@UserDetailActivity)
+                        accountIdLabel.text = "ID:"
+                        accountIdLabel.setTypeface(null, android.graphics.Typeface.BOLD)
+                        accountIdLabel.textSize = 16f
+                        accountIdLabel.setTextColor(0xFF444444.toInt())
+                        val accountIdLabelParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        accountIdLabelParams.bottomMargin = 2
+                        accountLayout.addView(accountIdLabel, accountIdLabelParams)
+                        val accountIdView = TextView(this@UserDetailActivity)
+                        accountIdView.textSize = 16f
+                        accountIdView.setTextColor(0xFF444444.toInt())
+                        val accountIdParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        accountIdParams.bottomMargin = 12
+                        accountIdView.text = user.id.toString()
+                        accountLayout.addView(accountIdView, accountIdParams)
+                        val accountLoginLabel = TextView(this@UserDetailActivity)
+                        accountLoginLabel.text = "Логин:"
+                        accountLoginLabel.setTypeface(null, android.graphics.Typeface.BOLD)
+                        accountLoginLabel.textSize = 16f
+                        accountLoginLabel.setTextColor(0xFF444444.toInt())
+                        val accountLoginLabelParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        accountLoginLabelParams.bottomMargin = 2
+                        accountLayout.addView(accountLoginLabel, accountLoginLabelParams)
+                        val accountLoginView = TextView(this@UserDetailActivity)
+                        accountLoginView.textSize = 16f
+                        accountLoginView.setTextColor(0xFF444444.toInt())
+                        val accountLoginParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        accountLoginParams.bottomMargin = 12
+                        accountLoginView.text = user.username
+                        accountLayout.addView(accountLoginView, accountLoginParams)
+                        val accountTypeLabel = TextView(this@UserDetailActivity)
+                        accountTypeLabel.text = "Тип:"
+                        accountTypeLabel.setTypeface(null, android.graphics.Typeface.BOLD)
+                        accountTypeLabel.textSize = 16f
+                        accountTypeLabel.setTextColor(0xFF444444.toInt())
+                        val accountTypeLabelParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        accountTypeLabelParams.bottomMargin = 2
+                        accountLayout.addView(accountTypeLabel, accountTypeLabelParams)
+                        val accountTypeView = TextView(this@UserDetailActivity)
+                        accountTypeView.textSize = 16f
+                        accountTypeView.setTextColor(0xFF444444.toInt())
+                        val accountTypeParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        accountTypeParams.bottomMargin = 12
+                        accountTypeView.text = when {
                             user.is_superuser -> "Суперпользователь"
                             user.is_staff -> "Сотрудник"
                             else -> "Пользователь"
-                        }))
+                        }
+                        accountLayout.addView(accountTypeView, accountTypeParams)
+                        val accountDateLabel = TextView(this@UserDetailActivity)
+                        accountDateLabel.text = "Регистрация:"
+                        accountDateLabel.setTypeface(null, android.graphics.Typeface.BOLD)
+                        accountDateLabel.textSize = 16f
+                        accountDateLabel.setTextColor(0xFF444444.toInt())
+                        val accountDateLabelParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        accountDateLabelParams.bottomMargin = 2
+                        accountLayout.addView(accountDateLabel, accountDateLabelParams)
+                        val accountDateView = TextView(this@UserDetailActivity)
+                        accountDateView.textSize = 16f
+                        accountDateView.setTextColor(0xFF444444.toInt())
                         val iso = user.date_joined.replace('T', ' ').replace(Regex("\\..*"), "")
                         val formattedDate = try {
                             val parser = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
@@ -133,7 +170,8 @@ class UserDetailActivity : AppCompatActivity() {
                         } catch (e: Exception) {
                             iso
                         }
-                        accountLayout.addView(makeRow("Регистрация: ", formattedDate))
+                        accountDateView.text = formattedDate
+                        accountLayout.addView(accountDateView)
                         content.addView(accountCard)
                         // --- CardView: Основная информация ---
                         val infoCard = MaterialCardView(this@UserDetailActivity)
@@ -170,5 +208,22 @@ class UserDetailActivity : AppCompatActivity() {
                 fullScreenLoading.visibility = View.GONE
             }
         }
+    }
+
+    private fun makeRow(label: String, value: String): LinearLayout {
+        val row = LinearLayout(this)
+        row.orientation = LinearLayout.HORIZONTAL
+        val labelView = TextView(this)
+        labelView.text = label
+        labelView.setTypeface(null, android.graphics.Typeface.BOLD)
+        labelView.textSize = 16f
+        labelView.setTextColor(0xFF444444.toInt())
+        val valueView = TextView(this)
+        valueView.text = value
+        valueView.textSize = 16f
+        valueView.setTextColor(0xFF444444.toInt())
+        row.addView(labelView)
+        row.addView(valueView)
+        return row
     }
 } 
