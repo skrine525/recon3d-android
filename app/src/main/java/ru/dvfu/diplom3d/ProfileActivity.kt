@@ -187,13 +187,21 @@ class ProfileActivity : AppCompatActivity() {
                         val api = RetrofitInstance.getApiService(baseUrl, this@ProfileActivity)
                         try {
                             val response = api.logout()
+                            if (response.code() == 401) {
+                                prefs.edit().remove("auth_token").apply()
+                                val intent = android.content.Intent(this@ProfileActivity, MainActivity::class.java)
+                                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                startActivity(intent)
+                                finish()
+                                return@launch
+                            }
                             prefs.edit().clear().apply()
                             val intent = android.content.Intent(this@ProfileActivity, MainActivity::class.java)
                             intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
                             startActivity(intent)
                             finish()
                         } catch (e: Exception) {
-                            showErrorDialog("Ошибка выхода: ${e.message}")
+                            showErrorDialog("Ошибка выхода: "+e.message)
                         } finally {
                             fullScreenLoading.visibility = View.GONE
                         }
@@ -229,6 +237,13 @@ class ProfileActivity : AppCompatActivity() {
                     firstName.setText(user?.first_name ?: "")
                     lastName.setText(user?.last_name ?: "")
                     email.setText(user?.email ?: "")
+                } else if (response.code() == 401) {
+                    prefs.edit().remove("auth_token").apply()
+                    val intent = android.content.Intent(this@ProfileActivity, MainActivity::class.java)
+                    intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                    startActivity(intent)
+                    finish()
+                    return@launch
                 }
             } finally {
                 fullScreenLoading.visibility = View.GONE
@@ -253,6 +268,13 @@ class ProfileActivity : AppCompatActivity() {
                         val user = response.body()
                         ru.dvfu.diplom3d.AuthLoadingActivity.userMe = user
                         android.widget.Toast.makeText(this@ProfileActivity, "Данные успешно обновлены", android.widget.Toast.LENGTH_SHORT).show()
+                    } else if (response.code() == 401) {
+                        prefs.edit().remove("auth_token").apply()
+                        val intent = android.content.Intent(this@ProfileActivity, MainActivity::class.java)
+                        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        startActivity(intent)
+                        finish()
+                        return@launch
                     } else if (response.code() == 400) {
                         val errorBody = response.errorBody()?.string()
                         val errorMsg = StringBuilder()
@@ -313,6 +335,13 @@ class ProfileActivity : AppCompatActivity() {
                         oldPassword.setText("")
                         newPassword.setText("")
                         repeatPassword.setText("")
+                    } else if (response.code() == 401) {
+                        prefs.edit().remove("auth_token").apply()
+                        val intent = android.content.Intent(this@ProfileActivity, MainActivity::class.java)
+                        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        startActivity(intent)
+                        finish()
+                        return@launch
                     } else if (response.code() == 400) {
                         val errorBody = response.errorBody()?.string()
                         val errorMsg = StringBuilder()
