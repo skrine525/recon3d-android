@@ -18,6 +18,8 @@ import ru.dvfu.diplom3d.api.RetrofitInstance
 import org.json.JSONObject
 import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.textfield.TextInputEditText
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class ProfileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,17 +46,109 @@ class ProfileActivity : AppCompatActivity() {
         progressBar.layoutParams = pbParams
         fullScreenLoading.addView(progressBar)
 
-        // Основной вертикальный layout
-        val content = LinearLayout(this)
-        content.orientation = LinearLayout.VERTICAL
-        val contentParams = FrameLayout.LayoutParams(
+        // Основной вертикальный layout внутри ScrollView
+        val scrollView = android.widget.ScrollView(this)
+        val scrollParams = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT
         )
-        contentParams.topMargin = resources.getDimensionPixelSize(com.google.android.material.R.dimen.abc_action_bar_default_height_material)
-        content.layoutParams = contentParams
+        scrollParams.topMargin = resources.getDimensionPixelSize(com.google.android.material.R.dimen.abc_action_bar_default_height_material)
+        scrollView.layoutParams = scrollParams
+
+        val content = LinearLayout(this)
+        content.orientation = LinearLayout.VERTICAL
         content.setPadding(32, 48, 32, 32)
-        layout.addView(content)
+        scrollView.addView(content)
+        layout.addView(scrollView)
+
+        // --- CardView: Учётная запись ---
+        val accountCard = MaterialCardView(this)
+        val accountCardParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        accountCardParams.topMargin = 0
+        accountCardParams.bottomMargin = 32
+        accountCard.layoutParams = accountCardParams
+        accountCard.radius = 24f
+        accountCard.cardElevation = 8f
+        accountCard.setContentPadding(32, 32, 32, 32)
+
+        val accountLayout = LinearLayout(this)
+        accountLayout.orientation = LinearLayout.VERTICAL
+        accountLayout.setPadding(0, 0, 0, 0)
+        accountCard.addView(accountLayout)
+
+        val accountTitle = TextView(this)
+        accountTitle.text = "Учётная запись"
+        accountTitle.textSize = 18f
+        accountTitle.setTypeface(null, android.graphics.Typeface.NORMAL)
+        accountTitle.setTextColor(0xFF000000.toInt())
+        accountTitle.textAlignment = View.TEXT_ALIGNMENT_CENTER
+        val accountTitleParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        accountTitleParams.bottomMargin = 12
+        accountLayout.addView(accountTitle, accountTitleParams)
+
+        val accountIdLabel = TextView(this)
+        accountIdLabel.text = "ID:"
+        accountIdLabel.setTypeface(null, android.graphics.Typeface.BOLD)
+        accountIdLabel.textSize = 16f
+        accountIdLabel.setTextColor(0xFF444444.toInt())
+        val accountIdLabelParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        accountIdLabelParams.bottomMargin = 2
+        accountLayout.addView(accountIdLabel, accountIdLabelParams)
+
+        val accountIdView = TextView(this)
+        accountIdView.textSize = 16f
+        accountIdView.setTextColor(0xFF444444.toInt())
+        val accountIdParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        accountIdParams.bottomMargin = 12
+        accountLayout.addView(accountIdView, accountIdParams)
+
+        val accountLoginLabel = TextView(this)
+        accountLoginLabel.text = "Логин:"
+        accountLoginLabel.setTypeface(null, android.graphics.Typeface.BOLD)
+        accountLoginLabel.textSize = 16f
+        accountLoginLabel.setTextColor(0xFF444444.toInt())
+        val accountLoginLabelParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        accountLoginLabelParams.bottomMargin = 2
+        accountLayout.addView(accountLoginLabel, accountLoginLabelParams)
+
+        val accountLoginView = TextView(this)
+        accountLoginView.textSize = 16f
+        accountLoginView.setTextColor(0xFF444444.toInt())
+        val accountLoginParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        accountLoginParams.bottomMargin = 12
+        accountLayout.addView(accountLoginView, accountLoginParams)
+
+        val accountTypeLabel = TextView(this)
+        accountTypeLabel.text = "Тип:"
+        accountTypeLabel.setTypeface(null, android.graphics.Typeface.BOLD)
+        accountTypeLabel.textSize = 16f
+        accountTypeLabel.setTextColor(0xFF444444.toInt())
+        val accountTypeLabelParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        accountTypeLabelParams.bottomMargin = 2
+        accountLayout.addView(accountTypeLabel, accountTypeLabelParams)
+
+        val accountTypeView = TextView(this)
+        accountTypeView.textSize = 16f
+        accountTypeView.setTextColor(0xFF444444.toInt())
+        val accountTypeParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        accountTypeParams.bottomMargin = 12
+        accountLayout.addView(accountTypeView, accountTypeParams)
+
+        val accountDateLabel = TextView(this)
+        accountDateLabel.text = "Дата регистрации:"
+        accountDateLabel.setTypeface(null, android.graphics.Typeface.BOLD)
+        accountDateLabel.textSize = 16f
+        accountDateLabel.setTextColor(0xFF444444.toInt())
+        val accountDateLabelParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        accountDateLabelParams.bottomMargin = 2
+        accountLayout.addView(accountDateLabel, accountDateLabelParams)
+
+        val accountDateView = TextView(this)
+        accountDateView.textSize = 16f
+        accountDateView.setTextColor(0xFF444444.toInt())
+        accountLayout.addView(accountDateView)
+
+        content.addView(accountCard)
 
         // --- CardView: Основная информация ---
         val infoCard = MaterialCardView(this)
@@ -70,7 +164,7 @@ class ProfileActivity : AppCompatActivity() {
         infoCard.addView(infoLayout)
 
         val infoTitle = TextView(this)
-        infoTitle.text = "Основная информация"
+        infoTitle.text = "Персональные данные"
         infoTitle.textSize = 18f
         infoTitle.setTextColor(0xFF000000.toInt())
         infoTitle.textAlignment = View.TEXT_ALIGNMENT_CENTER
@@ -237,6 +331,27 @@ class ProfileActivity : AppCompatActivity() {
                     firstName.setText(user?.first_name ?: "")
                     lastName.setText(user?.last_name ?: "")
                     email.setText(user?.email ?: "")
+                    // Заполняем карточку учётной записи
+                    if (user != null) {
+                        accountIdView.text = user.id.toString()
+                        accountLoginView.text = user.username
+                        val type = when {
+                            user.is_superuser -> "Суперпользователь"
+                            user.is_staff -> "Сотрудник"
+                            else -> "Пользователь"
+                        }
+                        accountTypeView.text = type
+                        // Форматируем дату
+                        val iso = user.date_joined.replace('T', ' ').replace(Regex("\\..*"), "")
+                        val formattedDate = try {
+                            val parser = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                            val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+                            formatter.format(parser.parse(iso)!!)
+                        } catch (e: Exception) {
+                            iso
+                        }
+                        accountDateView.text = formattedDate
+                    }
                 } else if (response.code() == 401) {
                     prefs.edit().remove("auth_token").apply()
                     android.widget.Toast.makeText(this@ProfileActivity, "Авторизационные данные утратили актуальность", android.widget.Toast.LENGTH_LONG).show()

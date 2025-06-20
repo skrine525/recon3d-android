@@ -50,7 +50,9 @@ data class UserMeResponse(
     val first_name: String,
     val last_name: String,
     val is_staff: Boolean,
-    val display_name: String
+    val display_name: String,
+    val is_superuser: Boolean,
+    val date_joined: String
 )
 
 data class UpdateMeRequest(
