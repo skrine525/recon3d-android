@@ -26,7 +26,7 @@ class AuthActivity : FragmentActivity() {
         val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
         val token = prefs.getString("auth_token", null)
         if (!token.isNullOrEmpty()) {
-            startActivity(Intent(this, LoadingActivity::class.java))
+            startActivity(Intent(this, AuthLoadingActivity::class.java))
             finish()
             return
         }
@@ -70,28 +70,23 @@ class AuthActivity : FragmentActivity() {
                 val api = RetrofitInstance.getApiService(baseUrl)
                 try {
                     val response = api.register(RegisterRequest(username, password, rePassword))
-                    Log.d("AuthTest", "Ответ регистрации: code=${response.code()}, body=${response.body()}, error=${response.errorBody()?.string()}")
                     if (response.code() == 201) {
                         Toast.makeText(this@AuthActivity, "Регистрация успешна! Выполняем вход...", Toast.LENGTH_SHORT).show()
                         // Автоматический логин
                         val loginResp = api.login(LoginRequest(username, password))
-                        Log.d("AuthTest", "Авто-логин после регистрации: code=${loginResp.code()}, body=${loginResp.body()}, error=${loginResp.errorBody()?.string()}")
                         if (loginResp.isSuccessful) {
                             val token = loginResp.body()?.auth_token
-                            Log.d("AuthTest", "Токен после регистрации: $token")
                             if (!token.isNullOrEmpty()) saveToken(token)
-                            Toast.makeText(this@AuthActivity, "Вход выполнен! Токен: $token", Toast.LENGTH_SHORT).show()
-                            goToMainMenu()
+                            Toast.makeText(this@AuthActivity, "Вход выполнен!", Toast.LENGTH_SHORT).show()
+                            startActivity(Intent(this@AuthActivity, AuthLoadingActivity::class.java))
+                            finish()
                         } else {
-                            Log.e("AuthTest", "Ошибка авто-логина: code=${loginResp.code()}, error=${loginResp.errorBody()?.string()}")
                             showErrorDialog("Ошибка входа после регистрации: ${loginResp.code()}\n${loginResp.errorBody()?.string()}")
                         }
                     } else {
-                        Log.e("AuthTest", "Ошибка регистрации: code=${response.code()}, error=${response.errorBody()?.string()}")
                         showErrorDialog("Ошибка регистрации: ${response.code()}\n${response.errorBody()?.string()}")
                     }
                 } catch (e: Exception) {
-                    Log.e("AuthTest", "Ошибка сети при регистрации", e)
                     showErrorDialog("Ошибка сети: ${e.message}")
                 }
             }
@@ -110,19 +105,16 @@ class AuthActivity : FragmentActivity() {
                 val api = RetrofitInstance.getApiService(baseUrl)
                 try {
                     val response = api.login(LoginRequest(username, password))
-                    Log.d("AuthTest", "Ответ логина: code=${response.code()}, body=${response.body()}, error=${response.errorBody()?.string()}")
                     if (response.isSuccessful) {
                         val token = response.body()?.auth_token
-                        Log.d("AuthTest", "Токен после логина: $token")
                         if (!token.isNullOrEmpty()) saveToken(token)
-                        Toast.makeText(this@AuthActivity, "Вход выполнен! Токен: $token", Toast.LENGTH_SHORT).show()
-                        goToMainMenu()
+                        Toast.makeText(this@AuthActivity, "Вход выполнен!", Toast.LENGTH_SHORT).show()
+                        startActivity(Intent(this@AuthActivity, AuthLoadingActivity::class.java))
+                        finish()
                     } else {
-                        Log.e("AuthTest", "Ошибка логина: code=${response.code()}, error=${response.errorBody()?.string()}")
                         showErrorDialog("Ошибка входа: ${response.code()}\n${response.errorBody()?.string()}")
                     }
                 } catch (e: Exception) {
-                    Log.e("AuthTest", "Ошибка сети при логине", e)
                     showErrorDialog("Ошибка сети: ${e.message}")
                 }
             }

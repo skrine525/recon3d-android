@@ -19,7 +19,7 @@
         android:id="@+id/editTextServerUrl"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="https://dev-webapp.radabot.ru"
+        android:text="https://dev.radabot.ru"
         android:hint="Введите адрес сервера"
         android:inputType="textUri"
         android:layout_marginBottom="8dp" />

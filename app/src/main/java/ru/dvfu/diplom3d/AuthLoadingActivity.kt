@@ -10,13 +10,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ru.dvfu.diplom3d.api.RetrofitInstance
-import android.view.Window
-import android.widget.ProgressBar
 
-class LoadingActivity : AppCompatActivity() {
+class AuthLoadingActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         // Убираем заголовок
-        supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
+        supportRequestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
         super.onCreate(savedInstanceState)
         val layout = LinearLayout(this)
         layout.orientation = LinearLayout.VERTICAL
@@ -25,7 +23,7 @@ class LoadingActivity : AppCompatActivity() {
         textView.text = "Загрузка"
         textView.textSize = 24f
         textView.gravity = Gravity.CENTER
-        val progressBar = ProgressBar(this)
+        val progressBar = android.widget.ProgressBar(this)
         val params = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
         params.topMargin = 32
         progressBar.layoutParams = params
@@ -43,14 +41,19 @@ class LoadingActivity : AppCompatActivity() {
                     val authHeader = "Token $token"
                     val response = api.getMe(authHeader)
                     if (response.isSuccessful) {
-                        startActivity(Intent(this@LoadingActivity, MainMenuActivity::class.java))
+                        val user = response.body()
+                        if (user?.is_staff == true) {
+                            startActivity(Intent(this@AuthLoadingActivity, StaffMainMenuActivity::class.java))
+                        } else {
+                            startActivity(Intent(this@AuthLoadingActivity, UserMainMenuActivity::class.java))
+                        }
                         finish()
                     } else {
-                        startActivity(Intent(this@LoadingActivity, AuthActivity::class.java))
+                        startActivity(Intent(this@AuthLoadingActivity, AuthActivity::class.java))
                         finish()
                     }
                 } catch (_: Exception) {
-                    startActivity(Intent(this@LoadingActivity, AuthActivity::class.java))
+                    startActivity(Intent(this@AuthLoadingActivity, AuthActivity::class.java))
                     finish()
                 }
             }
