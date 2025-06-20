@@ -19,10 +19,17 @@ import android.widget.EditText
 import ru.dvfu.diplom3d.api.UserResponse
 import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.button.MaterialButtonToggleGroup
+import com.google.android.material.button.MaterialButton
+import android.widget.HorizontalScrollView
 
 class UserListActivity : AppCompatActivity() {
     lateinit var content: LinearLayout
     lateinit var searchEdit: EditText
+
+    // --- Фильтрация по типу пользователя ---
+    enum class UserTypeFilter { ALL, USER, STAFF, SUPERUSER }
+    var userTypeFilter = UserTypeFilter.ALL
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +49,51 @@ class UserListActivity : AppCompatActivity() {
             Toolbar.LayoutParams.WRAP_CONTENT
         )
         rootLayout.addView(toolbar)
+
+        // --- Material фильтр по типу пользователя ---
+        val filterToggleGroup = MaterialButtonToggleGroup(this)
+        filterToggleGroup.isSingleSelection = true
+        filterToggleGroup.layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ).apply { setMargins(32, 32, 32, 0) }
+        val btnAll = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle)
+        btnAll.text = "Все"
+        btnAll.id = 1
+        filterToggleGroup.addView(btnAll)
+        val btnUser = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle)
+        btnUser.text = "Пользователь"
+        btnUser.id = 2
+        filterToggleGroup.addView(btnUser)
+        val btnStaff = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle)
+        btnStaff.text = "Сотрудник"
+        btnStaff.id = 3
+        filterToggleGroup.addView(btnStaff)
+        val btnSuper = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle)
+        btnSuper.text = "Суперадминистратор"
+        btnSuper.id = 4
+        filterToggleGroup.addView(btnSuper)
+        filterToggleGroup.check(1) // По умолчанию "Все"
+        val filterScroll = HorizontalScrollView(this)
+        filterScroll.isHorizontalScrollBarEnabled = false
+        filterScroll.layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        filterScroll.setPadding(32, 0, 32, 0)
+        filterScroll.addView(filterToggleGroup)
+        rootLayout.addView(filterScroll)
+        filterToggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                userTypeFilter = when (checkedId) {
+                    2 -> UserTypeFilter.USER
+                    3 -> UserTypeFilter.STAFF
+                    4 -> UserTypeFilter.SUPERUSER
+                    else -> UserTypeFilter.ALL
+                }
+                updateUserList()
+            }
+        }
 
         // --- Material поле поиска ---
         val searchInputLayout = TextInputLayout(this, null, com.google.android.material.R.style.Widget_Material3_TextInputLayout_OutlinedBox)
@@ -148,8 +200,16 @@ class UserListActivity : AppCompatActivity() {
     fun updateUserList() {
         content.removeAllViews()
         val users = usersList ?: return
+        // Сначала фильтрация по типу
+        val filteredByType = when (userTypeFilter) {
+            UserTypeFilter.ALL -> users
+            UserTypeFilter.USER -> users.filter { !it.is_staff && !it.is_superuser }
+            UserTypeFilter.STAFF -> users.filter { it.is_staff && !it.is_superuser }
+            UserTypeFilter.SUPERUSER -> users.filter { it.is_superuser }
+        }
+        // Затем поиск по тексту
         val query = searchEdit.text.toString().trim().lowercase()
-        val filtered = if (query.isEmpty()) users else users.filter {
+        val filtered = if (query.isEmpty()) filteredByType else filteredByType.filter {
             it.first_name.lowercase().contains(query) ||
             it.last_name.lowercase().contains(query) ||
             it.username.lowercase().contains(query) ||
