@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import kotlinx.coroutines.CoroutineScope
@@ -19,12 +20,14 @@ import ru.dvfu.diplom3d.api.ApiService
 class ServerSetupActivity : ComponentActivity() {
     private lateinit var editText: EditText
     private lateinit var button: Button
+    private lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_server_setup)
         editText = findViewById(R.id.editTextServerUrl)
         button = findViewById(R.id.buttonConfirm)
+        progressBar = findViewById(R.id.progressBarLoading)
 
         button.setOnClickListener {
             val url = editText.text.toString().trim().removeSuffix("/")
@@ -33,8 +36,15 @@ class ServerSetupActivity : ComponentActivity() {
                 Toast.makeText(this, "Введите адрес сервера", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            button.isEnabled = false
+            button.text = ""
+            progressBar.visibility = ProgressBar.VISIBLE
             CoroutineScope(Dispatchers.Main).launch {
-                if (checkServer(url)) {
+                val result = checkServer(url)
+                button.isEnabled = true
+                button.text = "Подтвердить"
+                progressBar.visibility = ProgressBar.GONE
+                if (result) {
                     getSharedPreferences("app_prefs", MODE_PRIVATE).edit().putString("server_url", url).apply()
                     startActivity(Intent(this@ServerSetupActivity, AuthActivity::class.java))
                     finish()

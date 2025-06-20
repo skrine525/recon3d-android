@@ -8,12 +8,12 @@
     android:background="#FFFFFF">
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Адрес сервера"
         android:textSize="16sp"
         android:layout_marginBottom="8dp"
-        android:gravity="center_horizontal" />
+        android:gravity="start" />
 
     <EditText
         android:id="@+id/editTextServerUrl"
@@ -32,10 +32,23 @@
         android:textColor="#888888"
         android:layout_marginBottom="16dp" />
 
-    <Button
-        android:id="@+id/buttonConfirm"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Подтвердить" />
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/buttonConfirm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Подтвердить" />
+
+        <ProgressBar
+            android:id="@+id/progressBarLoading"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+    </FrameLayout>
 
 </LinearLayout> 
