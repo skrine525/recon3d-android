@@ -16,6 +16,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ru.dvfu.diplom3d.api.RetrofitInstance
 import org.json.JSONObject
+import com.google.android.material.textfield.TextInputLayout
+import com.google.android.material.textfield.TextInputEditText
 
 class ProfileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,34 +60,30 @@ class ProfileActivity : AppCompatActivity() {
         val infoTitle = TextView(this)
         infoTitle.text = "Основная информация"
         infoTitle.textSize = 18f
-        infoTitle.setPadding(0, 0, 0, 32)
         infoTitle.setTextColor(0xFF000000.toInt())
-        infoLayout.addView(infoTitle)
+        infoTitle.textAlignment = View.TEXT_ALIGNMENT_CENTER
+        val infoTitleParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        infoTitleParams.bottomMargin = 12
+        infoLayout.addView(infoTitle, infoTitleParams)
 
-        val firstNameLabel = TextView(this)
-        firstNameLabel.text = "Имя"
-        firstNameLabel.textSize = 16f
-        infoLayout.addView(firstNameLabel)
-        val firstName = EditText(this)
-        firstName.hint = "Введите имя"
-        infoLayout.addView(firstName)
+        val firstNameLayout = TextInputLayout(this)
+        firstNameLayout.hint = "Имя"
+        val firstName = TextInputEditText(this)
+        firstNameLayout.addView(firstName)
+        infoLayout.addView(firstNameLayout)
 
-        val lastNameLabel = TextView(this)
-        lastNameLabel.text = "Фамилия"
-        lastNameLabel.textSize = 16f
-        infoLayout.addView(lastNameLabel)
-        val lastName = EditText(this)
-        lastName.hint = "Введите фамилию"
-        infoLayout.addView(lastName)
+        val lastNameLayout = TextInputLayout(this)
+        lastNameLayout.hint = "Фамилия"
+        val lastName = TextInputEditText(this)
+        lastNameLayout.addView(lastName)
+        infoLayout.addView(lastNameLayout)
 
-        val emailLabel = TextView(this)
-        emailLabel.text = "Email"
-        emailLabel.textSize = 16f
-        infoLayout.addView(emailLabel)
-        val email = EditText(this)
-        email.hint = "Введите email"
+        val emailLayout = TextInputLayout(this)
+        emailLayout.hint = "Email"
+        val email = TextInputEditText(this)
         email.inputType = android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
-        infoLayout.addView(email)
+        emailLayout.addView(email)
+        infoLayout.addView(emailLayout)
 
         val saveInfoBtn = Button(this)
         saveInfoBtn.text = "Сохранить"
@@ -111,36 +109,32 @@ class ProfileActivity : AppCompatActivity() {
         val securityTitle = TextView(this)
         securityTitle.text = "Безопасность"
         securityTitle.textSize = 18f
-        securityTitle.setPadding(0, 0, 0, 32)
         securityTitle.setTextColor(0xFF000000.toInt())
-        securityLayout.addView(securityTitle)
+        securityTitle.textAlignment = View.TEXT_ALIGNMENT_CENTER
+        val securityTitleParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        securityTitleParams.bottomMargin = 12
+        securityLayout.addView(securityTitle, securityTitleParams)
 
-        val oldPasswordLabel = TextView(this)
-        oldPasswordLabel.text = "Старый пароль"
-        oldPasswordLabel.textSize = 16f
-        securityLayout.addView(oldPasswordLabel)
-        val oldPassword = EditText(this)
-        oldPassword.hint = "Введите старый пароль"
+        val oldPasswordLayout = TextInputLayout(this)
+        oldPasswordLayout.hint = "Старый пароль"
+        val oldPassword = TextInputEditText(this)
         oldPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-        securityLayout.addView(oldPassword)
+        oldPasswordLayout.addView(oldPassword)
+        securityLayout.addView(oldPasswordLayout)
 
-        val newPasswordLabel = TextView(this)
-        newPasswordLabel.text = "Новый пароль"
-        newPasswordLabel.textSize = 16f
-        securityLayout.addView(newPasswordLabel)
-        val newPassword = EditText(this)
-        newPassword.hint = "Введите новый пароль"
+        val newPasswordLayout = TextInputLayout(this)
+        newPasswordLayout.hint = "Новый пароль"
+        val newPassword = TextInputEditText(this)
         newPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-        securityLayout.addView(newPassword)
+        newPasswordLayout.addView(newPassword)
+        securityLayout.addView(newPasswordLayout)
 
-        val repeatPasswordLabel = TextView(this)
-        repeatPasswordLabel.text = "Повторите новый пароль"
-        repeatPasswordLabel.textSize = 16f
-        securityLayout.addView(repeatPasswordLabel)
-        val repeatPassword = EditText(this)
-        repeatPassword.hint = "Введите новый пароль ещё раз"
+        val repeatPasswordLayout = TextInputLayout(this)
+        repeatPasswordLayout.hint = "Повторите новый пароль"
+        val repeatPassword = TextInputEditText(this)
         repeatPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-        securityLayout.addView(repeatPassword)
+        repeatPasswordLayout.addView(repeatPassword)
+        securityLayout.addView(repeatPasswordLayout)
 
         val savePasswordBtn = Button(this)
         savePasswordBtn.text = "Сохранить"
@@ -260,9 +254,9 @@ class ProfileActivity : AppCompatActivity() {
                     )
                     if (response.isSuccessful) {
                         android.widget.Toast.makeText(this@ProfileActivity, "Пароль успешно изменён", android.widget.Toast.LENGTH_SHORT).show()
-                        oldPassword.text.clear()
-                        newPassword.text.clear()
-                        repeatPassword.text.clear()
+                        oldPassword.setText("")
+                        newPassword.setText("")
+                        repeatPassword.setText("")
                     } else if (response.code() == 400) {
                         val errorBody = response.errorBody()?.string()
                         val errorMsg = StringBuilder()
