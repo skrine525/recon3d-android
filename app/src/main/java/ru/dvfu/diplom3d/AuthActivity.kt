@@ -43,8 +43,6 @@ class AuthActivity : FragmentActivity() {
             showLoginForm()
         }
 
-        val progressBarLogin = binding.root.findViewById<android.widget.ProgressBar>(R.id.progressBarLogin)
-        val progressBarRegister = binding.root.findViewById<android.widget.ProgressBar>(R.id.progressBarRegister)
         val fullScreenLoading = findViewById<View>(R.id.fullScreenLoading)
 
         binding.buttonRegister.setOnClickListener {

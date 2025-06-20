@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import kotlinx.coroutines.CoroutineScope
@@ -21,7 +20,6 @@ import ru.dvfu.diplom3d.api.ApiService
 class ServerSetupActivity : ComponentActivity() {
     private lateinit var editText: EditText
     private lateinit var button: Button
-    private lateinit var progressBar: ProgressBar
     private lateinit var fullScreenLoading: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,7 +27,6 @@ class ServerSetupActivity : ComponentActivity() {
         setContentView(R.layout.activity_server_setup)
         editText = findViewById(R.id.editTextServerUrl)
         button = findViewById(R.id.buttonConfirm)
-        progressBar = findViewById(R.id.progressBarLoading)
         fullScreenLoading = findViewById(R.id.fullScreenLoading)
 
         button.setOnClickListener {
@@ -40,13 +37,11 @@ class ServerSetupActivity : ComponentActivity() {
                 return@setOnClickListener
             }
             button.isClickable = false
-            progressBar.visibility = ProgressBar.VISIBLE
             fullScreenLoading.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.Main).launch {
                 val result = checkServer(url)
                 button.isClickable = true
                 button.text = "Подтвердить"
-                progressBar.visibility = ProgressBar.GONE
                 fullScreenLoading.visibility = View.GONE
                 if (result) {
                     getSharedPreferences("app_prefs", MODE_PRIVATE).edit().putString("server_url", url).apply()
