@@ -140,4 +140,4 @@ class AuthActivity : FragmentActivity() {
             .putString("auth_token", token)
             .apply()
     }
-} 
+}
