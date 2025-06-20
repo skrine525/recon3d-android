@@ -27,7 +27,7 @@ class UserDetailActivity : AppCompatActivity() {
 
         val layout = FrameLayout(this)
         val toolbar = Toolbar(this)
-        toolbar.title = "Пользователь #$userId"
+        toolbar.title = ""
         toolbar.layoutParams = Toolbar.LayoutParams(
             Toolbar.LayoutParams.MATCH_PARENT,
             Toolbar.LayoutParams.WRAP_CONTENT
@@ -158,6 +158,8 @@ class UserDetailActivity : AppCompatActivity() {
                         infoLayout.addView(makeRow("Фамилия: ", user.last_name))
                         infoLayout.addView(makeRow("Email: ", user.email))
                         content.addView(infoCard)
+                        // После успешной загрузки пользователя и проверки user != null:
+                        toolbar.title = user.display_name
                     }
                 } else {
                     Toast.makeText(this@UserDetailActivity, "Ошибка загрузки пользователя: ${response.code()}", Toast.LENGTH_LONG).show()
