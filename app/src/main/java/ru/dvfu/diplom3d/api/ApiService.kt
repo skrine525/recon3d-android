@@ -7,6 +7,7 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.FieldMap
 import retrofit2.http.FormUrlEncoded
+import retrofit2.http.Path
 
 interface ApiService {
     @GET("/api/v1/common/meta")
@@ -36,6 +37,9 @@ interface ApiService {
 
     @GET("/api/v1/users")
     suspend fun getUsers(): Response<List<UserResponse>>
+
+    @GET("/api/v1/users/{id}/")
+    suspend fun getUser(@Path("id") id: Int): Response<UserResponse>
 }
 
 // Примеры моделей для login/register
