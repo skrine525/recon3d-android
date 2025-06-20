@@ -13,6 +13,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import ru.dvfu.diplom3d.api.RetrofitInstance
+import ru.dvfu.diplom3d.api.ApiService
 
 class ServerSetupActivity : ComponentActivity() {
     private lateinit var editText: EditText
@@ -44,18 +46,15 @@ class ServerSetupActivity : ComponentActivity() {
     }
 
     private suspend fun checkServer(url: String): Boolean {
-        Log.d("ServerSetup", "Пробуем подключиться к серверу: $url/api/v1/mobile/meta")
+        Log.d("ServerSetup", "Пробуем подключиться к серверу: $url/api/v1/mobile/meta (Retrofit)")
         return try {
-            val client = OkHttpClient()
-            val request = Request.Builder().url("$url/api/v1/common/meta").build()
-            val response = withContext(Dispatchers.IO) {
-                client.newCall(request).execute()
-            }
+            val api = RetrofitInstance.getApiService(url)
+            val response = api.checkServer()
             val success = response.isSuccessful
-            Log.d("ServerSetup", "Ответ сервера: код ${response.code}, успешность: $success")
+            Log.d("ServerSetup", "Ответ сервера (Retrofit): код ${response.code()}, успешность: $success")
             success
         } catch (e: Exception) {
-            Log.e("ServerSetup", "Ошибка при подключении к серверу", e)
+            Log.e("ServerSetup", "Ошибка при подключении к серверу (Retrofit)", e)
             false
         }
     }
