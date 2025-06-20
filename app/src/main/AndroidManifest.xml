@@ -24,7 +24,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".AuthLoadingActivity" />
-        <activity android:name=".StaffMainMenuActivity" />
+        <activity
+            android:name=".StaffMainMenuActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity android:name=".UserMainMenuActivity" />
 
     </application>

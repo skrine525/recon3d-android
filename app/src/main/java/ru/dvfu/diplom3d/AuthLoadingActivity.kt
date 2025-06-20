@@ -12,6 +12,10 @@ import kotlinx.coroutines.launch
 import ru.dvfu.diplom3d.api.RetrofitInstance
 
 class AuthLoadingActivity : AppCompatActivity() {
+    companion object {
+        // Временное хранилище для данных пользователя (очищается при перезапуске приложения)
+        var userMe: ru.dvfu.diplom3d.api.UserMeResponse? = null
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         // Убираем заголовок
         supportRequestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
@@ -42,6 +46,7 @@ class AuthLoadingActivity : AppCompatActivity() {
                     val response = api.getMe(authHeader)
                     if (response.isSuccessful) {
                         val user = response.body()
+                        userMe = user // сохраняем во временное хранилище
                         if (user?.is_staff == true) {
                             startActivity(Intent(this@AuthLoadingActivity, StaffMainMenuActivity::class.java))
                         } else {
