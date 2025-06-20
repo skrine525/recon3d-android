@@ -47,7 +47,7 @@ class ServerSetupActivity : ComponentActivity() {
         Log.d("ServerSetup", "Пробуем подключиться к серверу: $url/api/v1/mobile/meta")
         return try {
             val client = OkHttpClient()
-            val request = Request.Builder().url("$url/api/v1/mobile/meta").build()
+            val request = Request.Builder().url("$url/api/v1/common/meta").build()
             val response = withContext(Dispatchers.IO) {
                 client.newCall(request).execute()
             }

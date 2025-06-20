@@ -1,12 +1,38 @@
 package ru.dvfu.diplom3d
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import android.view.View
+import androidx.fragment.app.FragmentActivity
+import ru.dvfu.diplom3d.databinding.ActivityAuthBinding
 
-class AuthActivity : ComponentActivity() {
+class AuthActivity : FragmentActivity() {
+    private lateinit var binding: ActivityAuthBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_auth)
-        // Здесь будет логика авторизации
+        binding = ActivityAuthBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // Показываем форму входа, скрываем регистрацию
+        showLoginForm()
+
+        binding.buttonShowRegister.setOnClickListener {
+            showRegisterForm()
+        }
+        binding.buttonShowLogin.setOnClickListener {
+            showLoginForm()
+        }
+
+        // Здесь добавьте обработку кнопок входа и регистрации
+    }
+
+    private fun showLoginForm() {
+        binding.loginForm.visibility = View.VISIBLE
+        binding.registerForm.visibility = View.GONE
+    }
+
+    private fun showRegisterForm() {
+        binding.loginForm.visibility = View.GONE
+        binding.registerForm.visibility = View.VISIBLE
     }
 } 
