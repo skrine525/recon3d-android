@@ -22,10 +22,14 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.button.MaterialButton
 import android.widget.HorizontalScrollView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import android.view.ViewGroup
 
 class UserListActivity : AppCompatActivity() {
     lateinit var content: LinearLayout
     lateinit var searchEdit: EditText
+    lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    lateinit var fullScreenLoading: FrameLayout
 
     // --- Фильтрация по типу пользователя ---
     enum class UserTypeFilter { ALL, USER, STAFF, SUPERUSER }
@@ -115,21 +119,28 @@ class UserListActivity : AppCompatActivity() {
         rootLayout.addView(space)
 
         // Scrollable list
-        val scrollView = ScrollView(this)
-        val scrollParams = LinearLayout.LayoutParams(
+        swipeRefreshLayout = SwipeRefreshLayout(this)
+        val swipeParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             0,
             1f
+        )
+        swipeRefreshLayout.layoutParams = swipeParams
+        val scrollView = ScrollView(this)
+        val scrollParams = FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
         )
         scrollView.layoutParams = scrollParams
         content = LinearLayout(this)
         content.orientation = LinearLayout.VERTICAL
         content.setPadding(32, 48, 32, 32)
         scrollView.addView(content)
-        rootLayout.addView(scrollView)
+        swipeRefreshLayout.addView(scrollView)
+        rootLayout.addView(swipeRefreshLayout)
 
         // --- Полноэкранный ProgressBar ---
-        val fullScreenLoading = FrameLayout(this)
+        fullScreenLoading = FrameLayout(this)
         fullScreenLoading.setBackgroundColor(0x80000000.toInt())
         fullScreenLoading.visibility = View.GONE
         fullScreenLoading.isClickable = true
@@ -156,8 +167,27 @@ class UserListActivity : AppCompatActivity() {
         setContentView(frame)
         setSupportActionBar(toolbar)
 
+        swipeRefreshLayout.setOnRefreshListener {
+            loadUsers(false)
+        }
+
         // Загрузка пользователей
-        fullScreenLoading.visibility = View.VISIBLE
+        loadUsers(true)
+
+        // Обновлять список при изменении поиска
+        searchEdit.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                updateUserList()
+            }
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        })
+    }
+
+    private fun loadUsers(isInitialLoad: Boolean) {
+        if (isInitialLoad) {
+            fullScreenLoading.visibility = View.VISIBLE
+        }
         CoroutineScope(Dispatchers.Main).launch {
             val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
             val baseUrl = prefs.getString("server_url", "") ?: ""
@@ -181,18 +211,12 @@ class UserListActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 Toast.makeText(this@UserListActivity, "Ошибка сети: ${e.message}", Toast.LENGTH_LONG).show()
             } finally {
-                fullScreenLoading.visibility = View.GONE
+                if (isInitialLoad) {
+                    fullScreenLoading.visibility = View.GONE
+                }
+                swipeRefreshLayout.isRefreshing = false
             }
         }
-
-        // Обновлять список при изменении поиска
-        searchEdit.addTextChangedListener(object : android.text.TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                updateUserList()
-            }
-            override fun afterTextChanged(s: android.text.Editable?) {}
-        })
     }
 
     // --- Список пользователей с поиском ---
