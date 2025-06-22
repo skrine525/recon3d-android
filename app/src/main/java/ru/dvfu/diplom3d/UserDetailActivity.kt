@@ -263,18 +263,7 @@ class UserDetailActivity : AppCompatActivity() {
                                     } else {
                                         val errorBody = response.errorBody()?.string() ?: ""
                                         if (response.code() == 400) {
-                                            try {
-                                                val json = JSONObject(errorBody)
-                                                val errors = mutableListOf<String>()
-                                                json.keys().forEach { key ->
-                                                    val jsonArray = json.getJSONArray(key)
-                                                    val values = (0 until jsonArray.length()).map { i -> jsonArray.getString(i) }
-                                                    errors.add("$key: ${values.joinToString(", ")}")
-                                                }
-                                                showErrorDialog(errors.joinToString("\n"))
-                                            } catch (e: Exception) {
-                                                showErrorDialog("Ошибка: $errorBody")
-                                            }
+                                            showErrorDialog(getFormattedError(errorBody))
                                         } else {
                                             Toast.makeText(this@UserDetailActivity, "Ошибка: ${response.code()}", Toast.LENGTH_LONG).show()
                                         }
@@ -379,18 +368,7 @@ class UserDetailActivity : AppCompatActivity() {
                                     } else {
                                         val errorBody = response.errorBody()?.string() ?: ""
                                         if (response.code() == 400) {
-                                            try {
-                                                val json = JSONObject(errorBody)
-                                                val errors = mutableListOf<String>()
-                                                json.keys().forEach { key ->
-                                                    val jsonArray = json.getJSONArray(key)
-                                                    val values = (0 until jsonArray.length()).map { i -> jsonArray.getString(i) }
-                                                    errors.add("$key: ${values.joinToString(", ")}")
-                                                }
-                                                showErrorDialog(errors.joinToString("\n"))
-                                            } catch (e: Exception) {
-                                                showErrorDialog("Ошибка: $errorBody")
-                                            }
+                                            showErrorDialog(getFormattedError(errorBody))
                                         } else {
                                             Toast.makeText(this@UserDetailActivity, "Ошибка: ${response.code()}", Toast.LENGTH_LONG).show()
                                         }
@@ -431,5 +409,30 @@ class UserDetailActivity : AppCompatActivity() {
             .setMessage(message)
             .setPositiveButton("OK", null)
             .show()
+    }
+
+    private fun getFormattedError(errorBody: String): String {
+        val fieldTranslations = mapOf(
+            "first_name" to "Имя",
+            "last_name" to "Фамилия",
+            "email" to "Email",
+            "new_password" to "Новый пароль",
+            "re_new_password" to "Повторите новый пароль",
+            "username" to "Логин",
+            "non_field_errors" to "Общие ошибки"
+        )
+        try {
+            val json = JSONObject(errorBody)
+            val errors = mutableListOf<String>()
+            json.keys().forEach { key ->
+                val translatedKey = fieldTranslations[key] ?: key
+                val jsonArray = json.getJSONArray(key)
+                val values = (0 until jsonArray.length()).map { i -> jsonArray.getString(i) }
+                errors.add("$translatedKey: ${values.joinToString(", ")}")
+            }
+            return errors.joinToString("\n")
+        } catch (e: Exception) {
+            return "Ошибка: $errorBody"
+        }
     }
 } 
