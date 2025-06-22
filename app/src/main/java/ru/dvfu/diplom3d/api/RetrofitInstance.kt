@@ -9,11 +9,13 @@ import okhttp3.Request
 
 object RetrofitInstance {
     private val AUTH_ENDPOINTS = listOf(
-        "GET" to "/api/v1/users/me/",
-        "PUT" to "/api/v1/users/me/",
-        "POST" to "/api/v1/token/logout/",
-        "POST" to "/api/v1/users/set_password/",
-        "GET" to "/api/v1/users",
+        "GET" to Regex("/api/v1/users/me/"),
+        "PUT" to Regex("/api/v1/users/me/"),
+        "POST" to Regex("/api/v1/token/logout/"),
+        "POST" to Regex("/api/v1/users/set_password/"),
+        "GET" to Regex("/api/v1/users"),
+        "PUT" to Regex("/api/v1/users/\\d+/"),
+        "GET" to Regex("/api/v1/users/\\d+/"),
     )
 
     fun getApiService(baseUrl: String, context: Context? = null): ApiService {
@@ -26,11 +28,11 @@ object RetrofitInstance {
                 val url = original.url.toString()
                 val requestBuilder = original.newBuilder()
                 val method = original.method.uppercase()
-                if (AUTH_ENDPOINTS.any { (m, endpoint) -> method == m && url.contains(endpoint) }) {
+                if (AUTH_ENDPOINTS.any { (m, endpoint) -> method == m && endpoint.containsMatchIn(url) }) {
                     requestBuilder.header("Authorization", "Token $token")
                 }
                 val response = chain.proceed(requestBuilder.build())
-                if (AUTH_ENDPOINTS.any { (m, endpoint) -> original.method.uppercase() == m && url.contains(endpoint) } && response.code == 401 && context != null) {
+                if (AUTH_ENDPOINTS.any { (m, endpoint) -> original.method.uppercase() == m && endpoint.containsMatchIn(url) } && response.code == 401 && context != null) {
                     context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
                         .edit().remove("auth_token").apply()
                 }

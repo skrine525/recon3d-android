@@ -23,6 +23,7 @@ import android.widget.Button
 import java.text.SimpleDateFormat
 import java.util.Locale
 import ru.dvfu.diplom3d.AuthLoadingActivity
+import ru.dvfu.diplom3d.api.UpdateUserRequest
 
 class UserDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -230,6 +231,54 @@ class UserDetailActivity : AppCompatActivity() {
                         saveInfoParams.topMargin = 16
                         saveInfoBtn.layoutParams = saveInfoParams
                         infoLayout.addView(saveInfoBtn)
+                        saveInfoBtn.setOnClickListener {
+                            val newFirstName = firstName.text.toString()
+                            val newLastName = lastName.text.toString()
+                            val newEmail = email.text.toString()
+
+                            fullScreenLoading.visibility = View.VISIBLE
+                            CoroutineScope(Dispatchers.Main).launch {
+                                val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                                val baseUrl = prefs.getString("server_url", "") ?: ""
+                                val api = RetrofitInstance.getApiService(baseUrl, this@UserDetailActivity)
+                                try {
+                                    val request = UpdateUserRequest(
+                                        first_name = newFirstName,
+                                        last_name = newLastName,
+                                        email = newEmail
+                                    )
+                                    val response = api.updateUser(user.id, request)
+                                    if (response.isSuccessful) {
+                                        Toast.makeText(this@UserDetailActivity, "Данные успешно обновлены", Toast.LENGTH_SHORT).show()
+                                        // Обновляем данные на экране
+                                        val updatedUser = response.body()
+                                        if (updatedUser != null) {
+                                            firstName.setText(updatedUser.first_name)
+                                            lastName.setText(updatedUser.last_name)
+                                            email.setText(updatedUser.email)
+                                        }
+                                    } else {
+                                        val errorBody = response.errorBody()?.string()
+                                        var errorMessage = "Ошибка обновления: ${response.code()}"
+                                        if (!errorBody.isNullOrEmpty()) {
+                                            try {
+                                                val json = org.json.JSONObject(errorBody)
+                                                errorMessage += "\\n" + json.keys().asSequence().map { key ->
+                                                    "$key: ${json.getJSONArray(key).join(", ")}"
+                                                }.joinToString("\\n")
+                                            } catch (e: Exception) {
+                                                errorMessage += "\\n$errorBody"
+                                            }
+                                        }
+                                        Toast.makeText(this@UserDetailActivity, errorMessage, Toast.LENGTH_LONG).show()
+                                    }
+                                } catch (e: Exception) {
+                                    Toast.makeText(this@UserDetailActivity, "Ошибка сети: ${e.message}", Toast.LENGTH_SHORT).show()
+                                } finally {
+                                    fullScreenLoading.visibility = View.GONE
+                                }
+                            }
+                        }
 
                         // --- Логика прав доступа ---
                         val currentUser = AuthLoadingActivity.userMe
