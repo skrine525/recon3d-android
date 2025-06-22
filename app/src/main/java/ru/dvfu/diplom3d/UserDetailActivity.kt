@@ -26,6 +26,7 @@ import ru.dvfu.diplom3d.AuthLoadingActivity
 import ru.dvfu.diplom3d.api.UpdateUserRequest
 import androidx.appcompat.app.AlertDialog
 import org.json.JSONObject
+import ru.dvfu.diplom3d.api.ChangePasswordRequest
 
 class UserDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -349,6 +350,58 @@ class UserDetailActivity : AppCompatActivity() {
                         savePasswordParams.topMargin = 16
                         savePasswordBtn.layoutParams = savePasswordParams
                         securityLayout.addView(savePasswordBtn)
+                        savePasswordBtn.setOnClickListener {
+                            val newPass = newPassword.text.toString()
+                            val reNewPass = repeatPassword.text.toString()
+                            if (newPass.isEmpty()) {
+                                showErrorDialog("Новый пароль не может быть пустым")
+                                return@setOnClickListener
+                            }
+                            if (newPass != reNewPass) {
+                                showErrorDialog("Пароли не совпадают")
+                                return@setOnClickListener
+                            }
+                            fullScreenLoading.visibility = View.VISIBLE
+                            CoroutineScope(Dispatchers.Main).launch {
+                                val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                                val baseUrl = prefs.getString("server_url", "") ?: ""
+                                val api = RetrofitInstance.getApiService(baseUrl, this@UserDetailActivity)
+                                try {
+                                    val request = ChangePasswordRequest(
+                                        new_password = newPass,
+                                        re_new_password = reNewPass
+                                    )
+                                    val response = api.changePassword(user.id, request)
+                                    if (response.isSuccessful) {
+                                        Toast.makeText(this@UserDetailActivity, "Пароль успешно изменен", Toast.LENGTH_SHORT).show()
+                                        newPassword.text?.clear()
+                                        repeatPassword.text?.clear()
+                                    } else {
+                                        val errorBody = response.errorBody()?.string() ?: ""
+                                        if (response.code() == 400) {
+                                            try {
+                                                val json = JSONObject(errorBody)
+                                                val errors = mutableListOf<String>()
+                                                json.keys().forEach { key ->
+                                                    val jsonArray = json.getJSONArray(key)
+                                                    val values = (0 until jsonArray.length()).map { i -> jsonArray.getString(i) }
+                                                    errors.add("$key: ${values.joinToString(", ")}")
+                                                }
+                                                showErrorDialog(errors.joinToString("\n"))
+                                            } catch (e: Exception) {
+                                                showErrorDialog("Ошибка: $errorBody")
+                                            }
+                                        } else {
+                                            Toast.makeText(this@UserDetailActivity, "Ошибка: ${response.code()}", Toast.LENGTH_LONG).show()
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    showErrorDialog("Ошибка сети: ${e.message}")
+                                } finally {
+                                    fullScreenLoading.visibility = View.GONE
+                                }
+                            }
+                        }
 
                         newPasswordLayout.isEnabled = canEdit
                         repeatPasswordLayout.isEnabled = canEdit
