@@ -27,6 +27,7 @@ import ru.dvfu.diplom3d.api.UpdateUserRequest
 import androidx.appcompat.app.AlertDialog
 import org.json.JSONObject
 import ru.dvfu.diplom3d.api.ChangePasswordRequest
+import com.google.android.material.switchmaterial.SwitchMaterial
 
 class UserDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -181,6 +182,41 @@ class UserDetailActivity : AppCompatActivity() {
                         accountDateView.text = formattedDate
                         accountLayout.addView(accountDateView)
                         content.addView(accountCard)
+
+                        // --- CardView: Флаги учётной записи ---
+                        val flagsCard = MaterialCardView(this@UserDetailActivity)
+                        val flagsCardParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        flagsCardParams.bottomMargin = 32
+                        flagsCard.layoutParams = flagsCardParams
+                        flagsCard.radius = 24f
+                        flagsCard.cardElevation = 8f
+                        flagsCard.setContentPadding(32, 32, 32, 32)
+
+                        val flagsLayout = LinearLayout(this@UserDetailActivity)
+                        flagsLayout.orientation = LinearLayout.VERTICAL
+                        flagsCard.addView(flagsLayout)
+
+                        val flagsTitle = TextView(this@UserDetailActivity)
+                        flagsTitle.text = "Флаги учётной записи"
+                        flagsTitle.textSize = 18f
+                        flagsTitle.setTextColor(0xFF000000.toInt())
+                        flagsTitle.textAlignment = View.TEXT_ALIGNMENT_CENTER
+                        val flagsTitleParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        flagsTitleParams.bottomMargin = 12
+                        flagsLayout.addView(flagsTitle, flagsTitleParams)
+
+                        val staffSwitch = SwitchMaterial(this@UserDetailActivity)
+                        staffSwitch.text = "Сотрудник"
+                        staffSwitch.isChecked = user.is_staff
+                        flagsLayout.addView(staffSwitch)
+
+                        val superuserSwitch = SwitchMaterial(this@UserDetailActivity)
+                        superuserSwitch.text = "Суперпользователь"
+                        superuserSwitch.isChecked = user.is_superuser
+                        flagsLayout.addView(superuserSwitch)
+
+                        content.addView(flagsCard)
+                        
                         // --- CardView: Основная информация ---
                         val infoCard = MaterialCardView(this@UserDetailActivity)
                         val infoCardParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -291,6 +327,11 @@ class UserDetailActivity : AppCompatActivity() {
                         lastNameLayout.isEnabled = canEdit
                         emailLayout.isEnabled = canEdit
                         saveInfoBtn.visibility = if (canEdit) View.VISIBLE else View.GONE
+                        
+                        val isCurrentUserSuperuser = AuthLoadingActivity.userMe?.is_superuser == true
+                        flagsCard.visibility = if (isCurrentUserSuperuser) View.VISIBLE else View.GONE
+                        staffSwitch.isEnabled = isCurrentUserSuperuser
+                        superuserSwitch.isEnabled = isCurrentUserSuperuser
                         
                         content.addView(infoCard)
 
