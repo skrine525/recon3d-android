@@ -46,6 +46,15 @@ interface ApiService {
 
     @PUT("/api/v1/common/users/{id}/change-password/")
     suspend fun changePassword(@Path("id") id: Int, @Body body: ChangePasswordRequest): Response<Void>
+
+    @PUT("/api/v1/common/users/{id}/change-is-active/")
+    suspend fun changeIsActive(@Path("id") id: Int, @Body body: UpdateFlagRequest): Response<Void>
+
+    @PUT("/api/v1/common/users/{id}/change-is-staff/")
+    suspend fun changeIsStaff(@Path("id") id: Int, @Body body: UpdateFlagRequest): Response<Void>
+
+    @PUT("/api/v1/common/users/{id}/change-is-superuser/")
+    suspend fun changeIsSuperuser(@Path("id") id: Int, @Body body: UpdateFlagRequest): Response<Void>
 }
 
 // Примеры моделей для login/register
@@ -89,4 +98,6 @@ data class UpdateUserRequest(
 data class ChangePasswordRequest(
     val new_password: String,
     val re_new_password: String
-) 
+)
+
+data class UpdateFlagRequest(val value: Boolean) 

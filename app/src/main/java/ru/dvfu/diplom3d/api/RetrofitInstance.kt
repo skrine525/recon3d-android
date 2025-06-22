@@ -17,6 +17,9 @@ object RetrofitInstance {
         "PUT" to Regex("/api/v1/users/\\d+/"),
         "GET" to Regex("/api/v1/users/\\d+/"),
         "PUT" to Regex("/api/v1/common/users/\\d+/change-password/"),
+        "PUT" to Regex("/api/v1/common/users/\\d+/change-is-active/"),
+        "PUT" to Regex("/api/v1/common/users/\\d+/change-is-staff/"),
+        "PUT" to Regex("/api/v1/common/users/\\d+/change-is-superuser/"),
     )
 
     fun getApiService(baseUrl: String, context: Context? = null): ApiService {
