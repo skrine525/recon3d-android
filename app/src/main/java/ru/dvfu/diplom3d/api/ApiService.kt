@@ -65,7 +65,8 @@ data class UserResponse(
     val is_staff: Boolean,
     val display_name: String,
     val is_superuser: Boolean,
-    val date_joined: String
+    val date_joined: String,
+    val is_active: Boolean
 )
 
 data class UpdateMeRequest(

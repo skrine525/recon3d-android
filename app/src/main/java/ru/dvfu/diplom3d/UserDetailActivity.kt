@@ -181,42 +181,38 @@ class UserDetailActivity : AppCompatActivity() {
                         }
                         accountDateView.text = formattedDate
                         accountLayout.addView(accountDateView)
-                        content.addView(accountCard)
 
-                        // --- CardView: Флаги учётной записи ---
-                        val flagsCard = MaterialCardView(this@UserDetailActivity)
-                        val flagsCardParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                        flagsCardParams.bottomMargin = 32
-                        flagsCard.layoutParams = flagsCardParams
-                        flagsCard.radius = 24f
-                        flagsCard.cardElevation = 8f
-                        flagsCard.setContentPadding(32, 32, 32, 32)
-
-                        val flagsLayout = LinearLayout(this@UserDetailActivity)
-                        flagsLayout.orientation = LinearLayout.VERTICAL
-                        flagsCard.addView(flagsLayout)
-
-                        val flagsTitle = TextView(this@UserDetailActivity)
-                        flagsTitle.text = "Флаги учётной записи"
-                        flagsTitle.textSize = 18f
-                        flagsTitle.setTextColor(0xFF000000.toInt())
-                        flagsTitle.textAlignment = View.TEXT_ALIGNMENT_CENTER
-                        val flagsTitleParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                        flagsTitleParams.bottomMargin = 12
-                        flagsLayout.addView(flagsTitle, flagsTitleParams)
+                        val divider = View(this@UserDetailActivity)
+                        val dividerParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 2)
+                        dividerParams.topMargin = 24
+                        dividerParams.bottomMargin = 24
+                        divider.layoutParams = dividerParams
+                        divider.setBackgroundColor(0xFFCCCCCC.toInt())
+                        accountLayout.addView(divider)
+                        
+                        val activeSwitch = SwitchMaterial(this@UserDetailActivity)
+                        activeSwitch.text = "Активен"
+                        activeSwitch.isChecked = user.is_active
+                        accountLayout.addView(activeSwitch)
 
                         val staffSwitch = SwitchMaterial(this@UserDetailActivity)
                         staffSwitch.text = "Сотрудник"
                         staffSwitch.isChecked = user.is_staff
-                        flagsLayout.addView(staffSwitch)
+                        accountLayout.addView(staffSwitch)
 
                         val superuserSwitch = SwitchMaterial(this@UserDetailActivity)
                         superuserSwitch.text = "Суперпользователь"
                         superuserSwitch.isChecked = user.is_superuser
-                        flagsLayout.addView(superuserSwitch)
-
-                        content.addView(flagsCard)
+                        accountLayout.addView(superuserSwitch)
                         
+                        val isCurrentUserSuperuser = AuthLoadingActivity.userMe?.is_superuser == true
+                        divider.visibility = if (isCurrentUserSuperuser) View.VISIBLE else View.GONE
+                        activeSwitch.visibility = if (isCurrentUserSuperuser) View.VISIBLE else View.GONE
+                        staffSwitch.visibility = if (isCurrentUserSuperuser) View.VISIBLE else View.GONE
+                        superuserSwitch.visibility = if (isCurrentUserSuperuser) View.VISIBLE else View.GONE
+                        
+                        content.addView(accountCard)
+
                         // --- CardView: Основная информация ---
                         val infoCard = MaterialCardView(this@UserDetailActivity)
                         val infoCardParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -328,8 +324,7 @@ class UserDetailActivity : AppCompatActivity() {
                         emailLayout.isEnabled = canEdit
                         saveInfoBtn.visibility = if (canEdit) View.VISIBLE else View.GONE
                         
-                        val isCurrentUserSuperuser = AuthLoadingActivity.userMe?.is_superuser == true
-                        flagsCard.visibility = if (isCurrentUserSuperuser) View.VISIBLE else View.GONE
+                        activeSwitch.isEnabled = isCurrentUserSuperuser
                         staffSwitch.isEnabled = isCurrentUserSuperuser
                         superuserSwitch.isEnabled = isCurrentUserSuperuser
                         
