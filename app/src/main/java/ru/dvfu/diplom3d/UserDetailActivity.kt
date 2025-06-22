@@ -17,6 +17,9 @@ import android.widget.ScrollView
 import android.view.ViewGroup
 import android.view.View
 import android.widget.Toast
+import com.google.android.material.textfield.TextInputLayout
+import com.google.android.material.textfield.TextInputEditText
+import android.widget.Button
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -192,9 +195,41 @@ class UserDetailActivity : AppCompatActivity() {
                         val infoTitleParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
                         infoTitleParams.bottomMargin = 12
                         infoLayout.addView(infoTitle, infoTitleParams)
-                        infoLayout.addView(makeRow("Имя: ", user.first_name))
-                        infoLayout.addView(makeRow("Фамилия: ", user.last_name))
-                        infoLayout.addView(makeRow("Email: ", user.email))
+
+                        val firstNameLayout = TextInputLayout(this@UserDetailActivity)
+                        firstNameLayout.hint = "Имя"
+                        firstNameLayout.boxBackgroundMode = 0
+                        val firstName = TextInputEditText(this@UserDetailActivity)
+                        firstName.setText(user.first_name)
+                        firstNameLayout.addView(firstName)
+                        infoLayout.addView(firstNameLayout)
+
+                        val lastNameLayout = TextInputLayout(this@UserDetailActivity)
+                        lastNameLayout.hint = "Фамилия"
+                        lastNameLayout.boxBackgroundMode = 0
+                        val lastName = TextInputEditText(this@UserDetailActivity)
+                        lastName.setText(user.last_name)
+                        lastNameLayout.addView(lastName)
+                        infoLayout.addView(lastNameLayout)
+
+                        val emailLayout = TextInputLayout(this@UserDetailActivity)
+                        emailLayout.hint = "Email"
+                        emailLayout.boxBackgroundMode = 0
+                        val email = TextInputEditText(this@UserDetailActivity)
+                        email.inputType = android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+                        email.setText(user.email)
+                        emailLayout.addView(email)
+                        infoLayout.addView(emailLayout)
+
+                        val saveInfoBtn = Button(this@UserDetailActivity)
+                        saveInfoBtn.text = "Сохранить"
+                        saveInfoBtn.setBackgroundResource(R.drawable.green_button)
+                        saveInfoBtn.setTextColor(0xFFFFFFFF.toInt())
+                        val saveInfoParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        saveInfoParams.topMargin = 16
+                        saveInfoBtn.layoutParams = saveInfoParams
+                        infoLayout.addView(saveInfoBtn)
+                        
                         content.addView(infoCard)
                     }
                 } else {
@@ -206,22 +241,5 @@ class UserDetailActivity : AppCompatActivity() {
                 fullScreenLoading.visibility = View.GONE
             }
         }
-    }
-
-    private fun makeRow(label: String, value: String): LinearLayout {
-        val row = LinearLayout(this)
-        row.orientation = LinearLayout.HORIZONTAL
-        val labelView = TextView(this)
-        labelView.text = label
-        labelView.setTypeface(null, android.graphics.Typeface.BOLD)
-        labelView.textSize = 16f
-        labelView.setTextColor(0xFF444444.toInt())
-        val valueView = TextView(this)
-        valueView.text = value
-        valueView.textSize = 16f
-        valueView.setTextColor(0xFF444444.toInt())
-        row.addView(labelView)
-        row.addView(valueView)
-        return row
     }
 } 
