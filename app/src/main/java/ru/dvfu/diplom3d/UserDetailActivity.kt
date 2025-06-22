@@ -24,6 +24,8 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import ru.dvfu.diplom3d.AuthLoadingActivity
 import ru.dvfu.diplom3d.api.UpdateUserRequest
+import androidx.appcompat.app.AlertDialog
+import org.json.JSONObject
 
 class UserDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,24 +40,6 @@ class UserDetailActivity : AppCompatActivity() {
             Toolbar.LayoutParams.WRAP_CONTENT
         )
         layout.addView(toolbar)
-
-        // --- Полноэкранный ProgressBar ---
-        val fullScreenLoading = FrameLayout(this)
-        fullScreenLoading.setBackgroundColor(0x80000000.toInt())
-        fullScreenLoading.visibility = View.GONE
-        fullScreenLoading.isClickable = true
-        fullScreenLoading.isFocusable = true
-        val progressBar = android.widget.ProgressBar(this)
-        val pbParams = FrameLayout.LayoutParams(128, 128)
-        pbParams.gravity = android.view.Gravity.CENTER
-        progressBar.layoutParams = pbParams
-        fullScreenLoading.addView(progressBar)
-        val overlayParams = FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,
-            FrameLayout.LayoutParams.MATCH_PARENT
-        )
-        fullScreenLoading.layoutParams = overlayParams
-        layout.addView(fullScreenLoading)
 
         // Основной вертикальный layout внутри ScrollView
         val scrollView = ScrollView(this)
@@ -73,6 +57,24 @@ class UserDetailActivity : AppCompatActivity() {
 
         setContentView(layout)
         setSupportActionBar(toolbar)
+        
+        // --- Полноэкранный ProgressBar ---
+        val fullScreenLoading = FrameLayout(this)
+        fullScreenLoading.setBackgroundColor(0x80000000.toInt())
+        fullScreenLoading.visibility = View.GONE
+        fullScreenLoading.isClickable = true
+        fullScreenLoading.isFocusable = true
+        val progressBar = android.widget.ProgressBar(this)
+        val pbParams = FrameLayout.LayoutParams(128, 128)
+        pbParams.gravity = android.view.Gravity.CENTER
+        progressBar.layoutParams = pbParams
+        fullScreenLoading.addView(progressBar)
+        val overlayParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        )
+        fullScreenLoading.layoutParams = overlayParams
+        (this.findViewById<ViewGroup>(android.R.id.content)).addView(fullScreenLoading)
 
         // --- Загрузка пользователя ---
         fullScreenLoading.visibility = View.VISIBLE
@@ -249,7 +251,7 @@ class UserDetailActivity : AppCompatActivity() {
                                     )
                                     val response = api.updateUser(user.id, request)
                                     if (response.isSuccessful) {
-                                        Toast.makeText(this@UserDetailActivity, "Данные успешно обновлены", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(this@UserDetailActivity, "Успешно!", Toast.LENGTH_SHORT).show()
                                         // Обновляем данные на экране
                                         val updatedUser = response.body()
                                         if (updatedUser != null) {
@@ -258,22 +260,26 @@ class UserDetailActivity : AppCompatActivity() {
                                             email.setText(updatedUser.email)
                                         }
                                     } else {
-                                        val errorBody = response.errorBody()?.string()
-                                        var errorMessage = "Ошибка обновления: ${response.code()}"
-                                        if (!errorBody.isNullOrEmpty()) {
+                                        val errorBody = response.errorBody()?.string() ?: ""
+                                        if (response.code() == 400) {
                                             try {
-                                                val json = org.json.JSONObject(errorBody)
-                                                errorMessage += "\\n" + json.keys().asSequence().map { key ->
-                                                    "$key: ${json.getJSONArray(key).join(", ")}"
-                                                }.joinToString("\\n")
+                                                val json = JSONObject(errorBody)
+                                                val errors = mutableListOf<String>()
+                                                json.keys().forEach { key ->
+                                                    val jsonArray = json.getJSONArray(key)
+                                                    val values = (0 until jsonArray.length()).map { i -> jsonArray.getString(i) }
+                                                    errors.add("$key: ${values.joinToString(", ")}")
+                                                }
+                                                showErrorDialog(errors.joinToString("\n"))
                                             } catch (e: Exception) {
-                                                errorMessage += "\\n$errorBody"
+                                                showErrorDialog("Ошибка: $errorBody")
                                             }
+                                        } else {
+                                            Toast.makeText(this@UserDetailActivity, "Ошибка: ${response.code()}", Toast.LENGTH_LONG).show()
                                         }
-                                        Toast.makeText(this@UserDetailActivity, errorMessage, Toast.LENGTH_LONG).show()
                                     }
                                 } catch (e: Exception) {
-                                    Toast.makeText(this@UserDetailActivity, "Ошибка сети: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    showErrorDialog("Ошибка сети: ${e.message}")
                                 } finally {
                                     fullScreenLoading.visibility = View.GONE
                                 }
@@ -351,13 +357,26 @@ class UserDetailActivity : AppCompatActivity() {
                         content.addView(securityCard)
                     }
                 } else {
-                    Toast.makeText(this@UserDetailActivity, "Ошибка загрузки пользователя: ${response.code()}", Toast.LENGTH_LONG).show()
+                    if (response.code() == 401) {
+                        Toast.makeText(this@UserDetailActivity, "Ошибка авторизации", Toast.LENGTH_LONG).show()
+                        // Можно добавить перенаправление на экран входа
+                    } else {
+                        showErrorDialog("Ошибка загрузки пользователя: ${response.code()}")
+                    }
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@UserDetailActivity, "Ошибка сети: ${e.message}", Toast.LENGTH_LONG).show()
+                showErrorDialog("Ошибка сети: ${e.message}")
             } finally {
                 fullScreenLoading.visibility = View.GONE
             }
         }
+    }
+
+    private fun showErrorDialog(message: String) {
+        AlertDialog.Builder(this)
+            .setTitle("Ошибка")
+            .setMessage(message)
+            .setPositiveButton("OK", null)
+            .show()
     }
 } 
