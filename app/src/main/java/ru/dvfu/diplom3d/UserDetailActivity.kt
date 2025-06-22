@@ -22,6 +22,7 @@ import com.google.android.material.textfield.TextInputEditText
 import android.widget.Button
 import java.text.SimpleDateFormat
 import java.util.Locale
+import ru.dvfu.diplom3d.AuthLoadingActivity
 
 class UserDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -229,8 +230,76 @@ class UserDetailActivity : AppCompatActivity() {
                         saveInfoParams.topMargin = 16
                         saveInfoBtn.layoutParams = saveInfoParams
                         infoLayout.addView(saveInfoBtn)
+
+                        // --- Логика прав доступа ---
+                        val currentUser = AuthLoadingActivity.userMe
+                        var canEdit = false
+                        if (currentUser != null) {
+                            if (currentUser.is_superuser) {
+                                canEdit = true
+                            } else if (currentUser.is_staff && !user.is_staff && !user.is_superuser) {
+                                canEdit = true
+                            }
+                        }
+
+                        firstNameLayout.isEnabled = canEdit
+                        lastNameLayout.isEnabled = canEdit
+                        emailLayout.isEnabled = canEdit
+                        saveInfoBtn.visibility = if (canEdit) View.VISIBLE else View.GONE
                         
                         content.addView(infoCard)
+
+                        // --- CardView: Безопасность ---
+                        val securityCard = MaterialCardView(this@UserDetailActivity)
+                        val securityCardParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        securityCard.layoutParams = securityCardParams
+                        securityCard.radius = 24f
+                        securityCard.cardElevation = 8f
+                        securityCard.setContentPadding(32, 32, 32, 32)
+
+                        val securityLayout = LinearLayout(this@UserDetailActivity)
+                        securityLayout.orientation = LinearLayout.VERTICAL
+                        securityCard.addView(securityLayout)
+
+                        val securityTitle = TextView(this@UserDetailActivity)
+                        securityTitle.text = "Безопасность"
+                        securityTitle.textSize = 18f
+                        securityTitle.setTextColor(0xFF000000.toInt())
+                        securityTitle.textAlignment = View.TEXT_ALIGNMENT_CENTER
+                        val securityTitleParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        securityTitleParams.bottomMargin = 12
+                        securityLayout.addView(securityTitle, securityTitleParams)
+
+                        val newPasswordLayout = TextInputLayout(this@UserDetailActivity)
+                        newPasswordLayout.hint = "Новый пароль"
+                        newPasswordLayout.boxBackgroundMode = 0
+                        val newPassword = TextInputEditText(this@UserDetailActivity)
+                        newPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+                        newPasswordLayout.addView(newPassword)
+                        securityLayout.addView(newPasswordLayout)
+
+                        val repeatPasswordLayout = TextInputLayout(this@UserDetailActivity)
+                        repeatPasswordLayout.hint = "Повторите новый пароль"
+                        repeatPasswordLayout.boxBackgroundMode = 0
+                        val repeatPassword = TextInputEditText(this@UserDetailActivity)
+                        repeatPassword.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+                        repeatPasswordLayout.addView(repeatPassword)
+                        securityLayout.addView(repeatPasswordLayout)
+
+                        val savePasswordBtn = Button(this@UserDetailActivity)
+                        savePasswordBtn.text = "Сохранить пароль"
+                        savePasswordBtn.setBackgroundResource(R.drawable.green_button)
+                        savePasswordBtn.setTextColor(0xFFFFFFFF.toInt())
+                        val savePasswordParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        savePasswordParams.topMargin = 16
+                        savePasswordBtn.layoutParams = savePasswordParams
+                        securityLayout.addView(savePasswordBtn)
+
+                        newPasswordLayout.isEnabled = canEdit
+                        repeatPasswordLayout.isEnabled = canEdit
+                        securityCard.visibility = if (canEdit) View.VISIBLE else View.GONE
+
+                        content.addView(securityCard)
                     }
                 } else {
                     Toast.makeText(this@UserDetailActivity, "Ошибка загрузки пользователя: ${response.code()}", Toast.LENGTH_LONG).show()
