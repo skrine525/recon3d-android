@@ -46,6 +46,8 @@ import ru.dvfu.diplom3d.api.RetrofitInstance
 import ru.dvfu.diplom3d.api.UploadPhotoResponse
 import android.widget.ProgressBar
 import com.bumptech.glide.Glide
+import java.net.URL
+import android.util.Log
 
 class AddReconstructionActivity : AppCompatActivity() {
     private var photoUri: Uri? = null
@@ -228,7 +230,7 @@ class AddReconstructionActivity : AppCompatActivity() {
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT
         )
-        maskImageView.scaleType = ImageView.ScaleType.CENTER_CROP
+        maskImageView.scaleType = ImageView.ScaleType.FIT_CENTER
         maskPhotoBlock.addView(maskImageView)
         maskPhotoText = TextView(this)
         maskPhotoText.text = "Фото"
@@ -300,7 +302,8 @@ class AddReconstructionActivity : AppCompatActivity() {
                         if (!maskUrl.isNullOrEmpty()) {
                             Glide.with(this@AddReconstructionActivity)
                                 .load(maskUrl)
-                                .centerCrop()
+                                .placeholder(android.R.color.darker_gray)
+                                .error(android.R.drawable.ic_menu_report_image)
                                 .into(maskImageView)
                             maskPhotoText.visibility = View.GONE
                         }
