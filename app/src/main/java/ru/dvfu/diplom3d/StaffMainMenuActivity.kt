@@ -21,6 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ru.dvfu.diplom3d.api.RetrofitInstance
+import com.google.android.material.card.MaterialCardView
 
 class StaffMainMenuActivity : AppCompatActivity() {
     private var usernameView: TextView? = null
@@ -36,8 +37,9 @@ class StaffMainMenuActivity : AppCompatActivity() {
         )
         drawerLayout.layoutParams = drawerParams
 
-        // Content (FrameLayout с Toolbar)
-        val content = FrameLayout(this)
+        // Content (LinearLayout с Toolbar и карточками)
+        val content = LinearLayout(this)
+        content.orientation = LinearLayout.VERTICAL
         content.layoutParams = DrawerLayout.LayoutParams(
             DrawerLayout.LayoutParams.MATCH_PARENT,
             DrawerLayout.LayoutParams.MATCH_PARENT
@@ -52,6 +54,75 @@ class StaffMainMenuActivity : AppCompatActivity() {
         )
         content.addView(toolbar)
 
+        // --- Карточки под тулбаром ---
+        val cardsLayout = LinearLayout(this)
+        cardsLayout.orientation = LinearLayout.VERTICAL
+        cardsLayout.setPadding(32, 48, 32, 32)
+        // --- Карточка 3D-реконструкция ---
+        val card3d = MaterialCardView(this)
+        val card3dParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        card3dParams.bottomMargin = 32
+        card3d.layoutParams = card3dParams
+        card3d.radius = 24f
+        card3d.cardElevation = 8f
+        card3d.setContentPadding(32, 32, 32, 32)
+        val layout3d = LinearLayout(this)
+        layout3d.orientation = LinearLayout.VERTICAL
+        val title3d = TextView(this)
+        title3d.text = "3D-реконструкция"
+        title3d.textSize = 20f
+        title3d.setTextColor(0xFF000000.toInt())
+        title3d.setTypeface(null, android.graphics.Typeface.BOLD)
+        layout3d.addView(title3d)
+        val btnAdd = android.widget.Button(this)
+        btnAdd.text = "Добавление реконструкции"
+        btnAdd.setBackgroundResource(R.drawable.green_button)
+        btnAdd.setTextColor(0xFFFFFFFF.toInt())
+        val btnAddParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        btnAddParams.topMargin = 24
+        btnAdd.layoutParams = btnAddParams
+        layout3d.addView(btnAdd)
+        val btnView = android.widget.Button(this)
+        btnView.text = "Просмотр реконструкции"
+        btnView.setBackgroundResource(R.drawable.blue_button)
+        btnView.setTextColor(0xFFFFFFFF.toInt())
+        val btnViewParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        btnViewParams.topMargin = 16
+        btnView.layoutParams = btnViewParams
+        layout3d.addView(btnView)
+        card3d.addView(layout3d)
+        cardsLayout.addView(card3d)
+        // --- Карточка Идентификация пользователя ---
+        val cardIdent = MaterialCardView(this)
+        val cardIdentParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        cardIdentParams.bottomMargin = 32
+        cardIdent.layoutParams = cardIdentParams
+        cardIdent.radius = 24f
+        cardIdent.cardElevation = 8f
+        cardIdent.setContentPadding(32, 32, 32, 32)
+        val layoutIdent = LinearLayout(this)
+        layoutIdent.orientation = LinearLayout.VERTICAL
+        val titleIdent = TextView(this)
+        titleIdent.text = "Идентификация пользователя"
+        titleIdent.textSize = 20f
+        titleIdent.setTextColor(0xFF000000.toInt())
+        titleIdent.setTypeface(null, android.graphics.Typeface.BOLD)
+        layoutIdent.addView(titleIdent)
+        cardIdent.addView(layoutIdent)
+        cardsLayout.addView(cardIdent)
+        content.addView(cardsLayout)
         drawerLayout.addView(content)
 
         // NavigationView (sidebar)
@@ -139,6 +210,12 @@ class StaffMainMenuActivity : AppCompatActivity() {
         )
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
+
+        // Добавляем обработчик нажатия на кнопку 'Добавление реконструкции'
+        btnAdd.setOnClickListener {
+            val intent = Intent(this, AddReconstructionActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     override fun onResume() {
