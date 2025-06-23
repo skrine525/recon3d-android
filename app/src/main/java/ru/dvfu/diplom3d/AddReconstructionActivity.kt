@@ -45,6 +45,7 @@ import kotlinx.coroutines.launch
 import ru.dvfu.diplom3d.api.RetrofitInstance
 import ru.dvfu.diplom3d.api.UploadPhotoResponse
 import android.widget.ProgressBar
+import com.bumptech.glide.Glide
 
 class AddReconstructionActivity : AppCompatActivity() {
     private var photoUri: Uri? = null
@@ -58,6 +59,8 @@ class AddReconstructionActivity : AppCompatActivity() {
     private lateinit var maskImageView: ImageView
     private lateinit var maskPhotoText: TextView
     private lateinit var btnMask: Button
+    private var maskUrl: String? = null
+    private lateinit var maskProgress: ProgressBar
 
     companion object {
         private const val REQUEST_CAMERA = 1001
@@ -239,6 +242,13 @@ class AddReconstructionActivity : AppCompatActivity() {
         maskPhotoText.layoutParams = maskPhotoTextParams
         maskPhotoBlock.addView(maskPhotoText)
         maskPhotoText.visibility = View.VISIBLE
+        // Прогресс-бар для маски
+        maskProgress = ProgressBar(this, null, android.R.attr.progressBarStyleLarge)
+        val maskProgressParams = FrameLayout.LayoutParams(128, 128)
+        maskProgressParams.gravity = android.view.Gravity.CENTER
+        maskProgress.layoutParams = maskProgressParams
+        maskProgress.visibility = View.GONE
+        maskPhotoBlock.addView(maskProgress)
         maskLayout.addView(maskPhotoBlock)
         maskCard.addView(maskLayout)
         maskCard.visibility = View.VISIBLE
@@ -268,6 +278,41 @@ class AddReconstructionActivity : AppCompatActivity() {
             croppedUri?.let {
                 FullScreenImageDialogFragment.newInstance(it.toString())
                     .show(supportFragmentManager, "fullscreen_image")
+            }
+        }
+        btnMask.setOnClickListener {
+            val fileId = uploadedPhotoId
+            if (fileId.isNullOrEmpty()) {
+                Toast.makeText(this, "Сначала загрузите фото плана", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            btnMask.isEnabled = false
+            maskProgress.visibility = View.VISIBLE
+            CoroutineScope(Dispatchers.Main).launch {
+                try {
+                    val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                    val baseUrl = prefs.getString("server_url", "") ?: ""
+                    val api = RetrofitInstance.getApiService(baseUrl, this@AddReconstructionActivity)
+                    val response = api.calculateInitialMask(ru.dvfu.diplom3d.api.CalculateMaskRequest(fileId))
+                    if (response.isSuccessful) {
+                        val maskResp = response.body()
+                        maskUrl = maskResp?.url
+                        if (!maskUrl.isNullOrEmpty()) {
+                            Glide.with(this@AddReconstructionActivity)
+                                .load(maskUrl)
+                                .centerCrop()
+                                .into(maskImageView)
+                            maskPhotoText.visibility = View.GONE
+                        }
+                    } else {
+                        Toast.makeText(this@AddReconstructionActivity, "Ошибка расчёта маски: ${response.code()}", Toast.LENGTH_LONG).show()
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(this@AddReconstructionActivity, "Ошибка расчёта маски: ${e.message}", Toast.LENGTH_LONG).show()
+                } finally {
+                    maskProgress.visibility = View.GONE
+                    btnMask.isEnabled = true
+                }
             }
         }
     }

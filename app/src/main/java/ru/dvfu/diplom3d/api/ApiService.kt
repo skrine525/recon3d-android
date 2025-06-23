@@ -11,6 +11,7 @@ import retrofit2.http.Path
 import okhttp3.MultipartBody
 import retrofit2.http.Multipart
 import retrofit2.http.Part
+import retrofit2.http.Headers
 
 interface ApiService {
     @GET("/api/v1/common/meta")
@@ -64,6 +65,12 @@ interface ApiService {
     suspend fun uploadPlanPhoto(
         @Part file: MultipartBody.Part
     ): Response<UploadPhotoResponse>
+
+    @POST("/api/v1/reconstruction/calculate-initial-mask")
+    @Headers("Content-Type: application/json")
+    suspend fun calculateInitialMask(
+        @Body body: CalculateMaskRequest
+    ): Response<CalculateMaskResponse>
 }
 
 // Примеры моделей для login/register
@@ -119,4 +126,14 @@ data class UploadPhotoResponse(
     val source_type: Int,
     val uploaded_by: Int,
     val uploaded_at: String
+)
+
+data class CalculateMaskRequest(val file_id: String)
+data class CalculateMaskResponse(
+    val id: String,
+    val source_upload_file_id: String,
+    val created_at: String,
+    val created_by: Int,
+    val file_path: String,
+    val url: String
 ) 
