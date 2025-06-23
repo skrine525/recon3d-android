@@ -56,4 +56,7 @@ dependencies {
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // uCrop для кадрирования изображений
+    implementation("com.github.yalantis:ucrop:2.2.8")
 }

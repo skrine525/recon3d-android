@@ -10,8 +10,37 @@ import android.widget.ScrollView
 import android.widget.Button
 import android.view.View
 import android.widget.TextView
+import android.app.Activity
+import android.content.Intent
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.os.Environment
+import android.provider.MediaStore
+import android.widget.ImageView
+import androidx.core.content.FileProvider
+import com.yalantis.ucrop.UCrop
+import java.io.File
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import android.widget.Toast
 
 class AddReconstructionActivity : AppCompatActivity() {
+    private var photoUri: Uri? = null
+    private var croppedUri: Uri? = null
+    private lateinit var imageView: ImageView
+    private lateinit var photoText: TextView
+
+    companion object {
+        private const val REQUEST_CAMERA = 1001
+        private const val REQUEST_GALLERY = 1002
+        private const val REQUEST_CROP = UCrop.REQUEST_CROP
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val layout = FrameLayout(this)
@@ -87,7 +116,14 @@ class AddReconstructionActivity : AppCompatActivity() {
         )
         photoParams.topMargin = 24
         photoBlock.layoutParams = photoParams
-        val photoText = TextView(this)
+        imageView = ImageView(this)
+        imageView.layoutParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        )
+        imageView.scaleType = ImageView.ScaleType.CENTER_CROP
+        photoBlock.addView(imageView)
+        photoText = TextView(this)
         photoText.text = "Фото"
         photoText.textSize = 18f
         photoText.setTextColor(0xFF888888.toInt())
@@ -104,5 +140,100 @@ class AddReconstructionActivity : AppCompatActivity() {
 
         setContentView(layout)
         setSupportActionBar(toolbar)
+
+        // Запрос разрешений
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE),
+                123
+            )
+        }
+
+        btnPhoto.setOnClickListener {
+            dispatchTakePictureIntent()
+        }
+        btnPick.setOnClickListener {
+            dispatchPickFromGalleryIntent()
+        }
+    }
+
+    private fun dispatchTakePictureIntent() {
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        if (intent.resolveActivity(packageManager) != null) {
+            val photoFile: File? = try {
+                createImageFile()
+            } catch (ex: IOException) {
+                null
+            }
+            photoFile?.also {
+                photoUri = FileProvider.getUriForFile(
+                    this,
+                    "ru.dvfu.diplom3d.fileprovider",
+                    it
+                )
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+                startActivityForResult(intent, REQUEST_CAMERA)
+            }
+        }
+    }
+
+    private fun dispatchPickFromGalleryIntent() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        intent.type = "image/*"
+        startActivityForResult(intent, REQUEST_GALLERY)
+    }
+
+    private fun createImageFile(): File {
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+        return File.createTempFile(
+            "JPEG_${timeStamp}_",
+            ".jpg",
+            storageDir
+        )
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode != Activity.RESULT_OK) return
+        when (requestCode) {
+            REQUEST_CAMERA -> {
+                photoUri?.let { startCrop(it) }
+            }
+            REQUEST_GALLERY -> {
+                val selectedImageUri = data?.data
+                if (selectedImageUri != null) {
+                    startCrop(selectedImageUri)
+                }
+            }
+            REQUEST_CROP -> {
+                val resultUri = UCrop.getOutput(data!!)
+                if (resultUri != null) {
+                    croppedUri = resultUri
+                    imageView.setImageURI(resultUri)
+                    photoText.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    private fun startCrop(sourceUri: Uri) {
+        val destUri = Uri.fromFile(File(cacheDir, "cropped_${System.currentTimeMillis()}.jpg"))
+        val uCrop = UCrop.of(sourceUri, destUri)
+        uCrop.withAspectRatio(0f, 0f) // свободное кадрирование
+        uCrop.start(this)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 123) {
+            if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                // разрешения даны, можно продолжать
+            } else {
+                Toast.makeText(this, "Требуются разрешения для работы с фото", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 } 

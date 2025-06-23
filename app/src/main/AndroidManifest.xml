@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -32,6 +34,20 @@
         <activity android:name=".ProfileActivity" android:theme="@style/Theme.Diplom3D.NoActionBar" />
         <activity android:name=".UserDetailActivity" android:theme="@style/Theme.Diplom3D.NoActionBar" />
         <activity android:name=".AddReconstructionActivity" android:theme="@style/Theme.Diplom3D.NoActionBar" />
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="ru.dvfu.diplom3d.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
 
     </application>
 
