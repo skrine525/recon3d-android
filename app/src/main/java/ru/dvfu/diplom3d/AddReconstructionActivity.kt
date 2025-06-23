@@ -221,8 +221,11 @@ class AddReconstructionActivity : AppCompatActivity() {
 
     private fun startCrop(sourceUri: Uri) {
         val destUri = Uri.fromFile(File(cacheDir, "cropped_${System.currentTimeMillis()}.jpg"))
+        val options = UCrop.Options()
+        options.setFreeStyleCropEnabled(true)
         val uCrop = UCrop.of(sourceUri, destUri)
-        uCrop.withAspectRatio(0f, 0f) // свободное кадрирование
+            .withAspectRatio(0f, 0f)
+            .withOptions(options)
         uCrop.start(this)
     }
 
