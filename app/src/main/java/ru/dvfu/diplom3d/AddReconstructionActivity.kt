@@ -53,6 +53,11 @@ class AddReconstructionActivity : AppCompatActivity() {
     private lateinit var photoText: TextView
     private lateinit var photoProgress: ProgressBar
     private var isUploading = false
+    private var uploadedPhotoId: String? = null
+    private lateinit var maskCard: MaterialCardView
+    private lateinit var maskImageView: ImageView
+    private lateinit var maskPhotoText: TextView
+    private lateinit var btnMask: Button
 
     companion object {
         private const val REQUEST_CAMERA = 1001
@@ -171,6 +176,73 @@ class AddReconstructionActivity : AppCompatActivity() {
         cardLayout.addView(photoBlock)
         card.addView(cardLayout)
         content.addView(card)
+
+        // --- Карточка 'Маска стен' (всегда видима, кнопка неактивна до загрузки) ---
+        maskCard = MaterialCardView(this)
+        val maskCardParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        maskCardParams.bottomMargin = 32
+        maskCard.layoutParams = maskCardParams
+        maskCard.radius = 24f
+        maskCard.cardElevation = 8f
+        maskCard.setContentPadding(32, 32, 32, 32)
+        val maskLayout = LinearLayout(this)
+        maskLayout.orientation = LinearLayout.VERTICAL
+        val maskTitle = TextView(this)
+        maskTitle.text = "Маска стен"
+        maskTitle.textSize = 20f
+        maskTitle.setTextColor(0xFF000000.toInt())
+        maskTitle.setTypeface(null, android.graphics.Typeface.BOLD)
+        maskLayout.addView(maskTitle)
+        btnMask = Button(this)
+        btnMask.text = "Просчитать маску"
+        btnMask.setBackgroundResource(R.drawable.green_button)
+        btnMask.setTextColor(0xFFFFFFFF.toInt())
+        btnMask.isEnabled = false // неактивна до загрузки
+        val btnMaskParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        btnMaskParams.topMargin = 24
+        btnMask.layoutParams = btnMaskParams
+        maskLayout.addView(btnMask)
+        // Серый блок под маску с соотношением 16:9
+        val displayMetrics = resources.displayMetrics
+        val blockWidth = displayMetrics.widthPixels - 64 // padding
+        val blockHeight = (blockWidth * 9f / 16f).toInt()
+        val maskPhotoBlock = FrameLayout(this)
+        maskPhotoBlock.setBackgroundColor(0xFFCCCCCC.toInt())
+        val maskPhotoParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            blockHeight
+        )
+        maskPhotoParams.topMargin = 24
+        maskPhotoBlock.layoutParams = maskPhotoParams
+        maskImageView = ImageView(this)
+        maskImageView.layoutParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        )
+        maskImageView.scaleType = ImageView.ScaleType.CENTER_CROP
+        maskPhotoBlock.addView(maskImageView)
+        maskPhotoText = TextView(this)
+        maskPhotoText.text = "Фото"
+        maskPhotoText.textSize = 18f
+        maskPhotoText.setTextColor(0xFF888888.toInt())
+        maskPhotoText.gravity = android.view.Gravity.CENTER
+        val maskPhotoTextParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        )
+        maskPhotoText.layoutParams = maskPhotoTextParams
+        maskPhotoBlock.addView(maskPhotoText)
+        maskPhotoText.visibility = View.VISIBLE
+        maskLayout.addView(maskPhotoBlock)
+        maskCard.addView(maskLayout)
+        maskCard.visibility = View.VISIBLE
+        content.addView(maskCard)
 
         setContentView(layout)
         setSupportActionBar(toolbar)
@@ -313,9 +385,12 @@ class AddReconstructionActivity : AppCompatActivity() {
             try {
                 val response = api.uploadPlanPhoto(body)
                 if (response.isSuccessful) {
-                    // Фото успешно загружено, ничего не меняем в imageView
+                    val uploadResp = response.body()
+                    uploadedPhotoId = uploadResp?.id
                     imageView.alpha = 1f
                     photoText.visibility = View.GONE
+                    // Делаем кнопку активной после загрузки
+                    btnMask.isEnabled = true
                 } else {
                     Toast.makeText(this@AddReconstructionActivity, "Ошибка загрузки: ${response.code()}", Toast.LENGTH_LONG).show()
                 }
