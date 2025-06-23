@@ -28,6 +28,14 @@ import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import android.widget.Toast
+import android.graphics.Bitmap
+import android.graphics.Matrix
+import androidx.exifinterface.media.ExifInterface
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import android.widget.ImageButton
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.FragmentActivity
 
 class AddReconstructionActivity : AppCompatActivity() {
     private var photoUri: Uri? = null
@@ -107,15 +115,23 @@ class AddReconstructionActivity : AppCompatActivity() {
         btnPickParams.topMargin = 16
         btnPick.layoutParams = btnPickParams
         cardLayout.addView(btnPick)
-        // Серый блок под фото
+        // Серый блок под фото с соотношением 16:9
         val photoBlock = FrameLayout(this)
         photoBlock.setBackgroundColor(0xFFCCCCCC.toInt())
         val photoParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
-            200
+            LinearLayout.LayoutParams.WRAP_CONTENT
         )
         photoParams.topMargin = 24
         photoBlock.layoutParams = photoParams
+        // Устанавливаем высоту 16:9 после layout pass
+        photoBlock.post {
+            val width = photoBlock.width
+            val height = (width * 9f / 16f).toInt()
+            val params = photoBlock.layoutParams
+            params.height = height
+            photoBlock.layoutParams = params
+        }
         imageView = ImageView(this)
         imageView.layoutParams = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
@@ -156,6 +172,13 @@ class AddReconstructionActivity : AppCompatActivity() {
         }
         btnPick.setOnClickListener {
             dispatchPickFromGalleryIntent()
+        }
+        // Открытие фото на весь экран по клику
+        imageView.setOnClickListener {
+            croppedUri?.let {
+                FullScreenImageDialogFragment.newInstance(it.toString())
+                    .show(supportFragmentManager, "fullscreen_image")
+            }
         }
     }
 
@@ -212,10 +235,34 @@ class AddReconstructionActivity : AppCompatActivity() {
                 val resultUri = UCrop.getOutput(data!!)
                 if (resultUri != null) {
                     croppedUri = resultUri
-                    imageView.setImageURI(resultUri)
-                    photoText.visibility = View.GONE
+                    setImageFromUri(resultUri)
                 }
             }
+        }
+    }
+
+    private fun setImageFromUri(uri: Uri) {
+        try {
+            val inputStream = contentResolver.openInputStream(uri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            inputStream?.close()
+            if (bitmap != null) {
+                val exif = ExifInterface(contentResolver.openInputStream(uri)!!)
+                val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+                val matrix = Matrix()
+                when (orientation) {
+                    ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+                    ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+                    ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+                }
+                val rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                imageView.setImageBitmap(rotatedBitmap)
+                imageView.scaleType = ImageView.ScaleType.FIT_CENTER
+                photoText.visibility = View.GONE
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "Ошибка отображения фото", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -238,5 +285,46 @@ class AddReconstructionActivity : AppCompatActivity() {
                 Toast.makeText(this, "Требуются разрешения для работы с фото", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+}
+
+class FullScreenImageDialogFragment : DialogFragment() {
+    companion object {
+        private const val ARG_URI = "image_uri"
+        fun newInstance(imageUri: String): FullScreenImageDialogFragment {
+            val fragment = FullScreenImageDialogFragment()
+            val args = Bundle()
+            args.putString(ARG_URI, imageUri)
+            fragment.arguments = args
+            return fragment
+        }
+    }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val root = FrameLayout(requireContext())
+        root.setBackgroundColor(0xFF000000.toInt())
+        val imageView = ImageView(requireContext())
+        imageView.layoutParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        )
+        imageView.scaleType = ImageView.ScaleType.FIT_CENTER
+        val uriStr = arguments?.getString(ARG_URI)
+        if (uriStr != null) {
+            imageView.setImageURI(Uri.parse(uriStr))
+        }
+        root.addView(imageView)
+        // Кнопка-крестик
+        val closeBtn = ImageButton(requireContext())
+        closeBtn.setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+        val size = (48 * resources.displayMetrics.density).toInt()
+        val params = FrameLayout.LayoutParams(size, size)
+        params.topMargin = (16 * resources.displayMetrics.density).toInt()
+        params.rightMargin = (16 * resources.displayMetrics.density).toInt()
+        params.gravity = android.view.Gravity.END or android.view.Gravity.TOP
+        closeBtn.layoutParams = params
+        closeBtn.setBackgroundColor(0x00000000)
+        closeBtn.setOnClickListener { dismiss() }
+        root.addView(closeBtn)
+        return root
     }
 } 
