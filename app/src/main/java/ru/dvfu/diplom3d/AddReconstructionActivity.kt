@@ -36,12 +36,23 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import ru.dvfu.diplom3d.api.RetrofitInstance
+import ru.dvfu.diplom3d.api.UploadPhotoResponse
+import android.widget.ProgressBar
 
 class AddReconstructionActivity : AppCompatActivity() {
     private var photoUri: Uri? = null
     private var croppedUri: Uri? = null
     private lateinit var imageView: ImageView
     private lateinit var photoText: TextView
+    private lateinit var photoProgress: ProgressBar
+    private var isUploading = false
 
     companion object {
         private const val REQUEST_CAMERA = 1001
@@ -150,6 +161,13 @@ class AddReconstructionActivity : AppCompatActivity() {
         )
         photoText.layoutParams = photoTextParams
         photoBlock.addView(photoText)
+        // Круговой прогресс-бар по центру
+        photoProgress = ProgressBar(this, null, android.R.attr.progressBarStyleLarge)
+        val progressParams = FrameLayout.LayoutParams(128, 128)
+        progressParams.gravity = android.view.Gravity.CENTER
+        photoProgress.layoutParams = progressParams
+        photoProgress.visibility = View.GONE
+        photoBlock.addView(photoProgress)
         cardLayout.addView(photoBlock)
         card.addView(cardLayout)
         content.addView(card)
@@ -236,6 +254,7 @@ class AddReconstructionActivity : AppCompatActivity() {
                 if (resultUri != null) {
                     croppedUri = resultUri
                     setImageFromUri(resultUri)
+                    uploadPhotoToServer(resultUri)
                 }
             }
         }
@@ -274,6 +293,53 @@ class AddReconstructionActivity : AppCompatActivity() {
             .withAspectRatio(0f, 0f)
             .withOptions(options)
         uCrop.start(this)
+    }
+
+    private fun uploadPhotoToServer(uri: Uri) {
+        val file = uriToFile(uri) ?: run {
+            Toast.makeText(this, "Не удалось получить файл фото", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        val baseUrl = prefs.getString("server_url", "") ?: ""
+        val api = RetrofitInstance.getApiService(baseUrl, this)
+        val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+        val body = MultipartBody.Part.createFormData("file", file.name, requestFile)
+        isUploading = true
+        photoProgress.visibility = View.VISIBLE
+        imageView.alpha = 0.3f
+        photoText.visibility = View.GONE
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val response = api.uploadPlanPhoto(body)
+                if (response.isSuccessful) {
+                    // Фото успешно загружено, ничего не меняем в imageView
+                    imageView.alpha = 1f
+                    photoText.visibility = View.GONE
+                } else {
+                    Toast.makeText(this@AddReconstructionActivity, "Ошибка загрузки: ${response.code()}", Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@AddReconstructionActivity, "Ошибка загрузки: ${e.message}", Toast.LENGTH_LONG).show()
+            } finally {
+                isUploading = false
+                photoProgress.visibility = View.GONE
+                imageView.alpha = 1f
+            }
+        }
+    }
+
+    private fun uriToFile(uri: Uri): File? {
+        return try {
+            val inputStream = contentResolver.openInputStream(uri) ?: return null
+            val tempFile = File.createTempFile("upload_", ".jpg", cacheDir)
+            tempFile.outputStream().use { fileOut ->
+                inputStream.copyTo(fileOut)
+            }
+            tempFile
+        } catch (e: Exception) {
+            null
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {

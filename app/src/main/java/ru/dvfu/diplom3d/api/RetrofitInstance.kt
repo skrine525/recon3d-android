@@ -20,6 +20,7 @@ object RetrofitInstance {
         "PUT" to Regex("/api/v1/common/users/\\d+/change-is-active/"),
         "PUT" to Regex("/api/v1/common/users/\\d+/change-is-staff/"),
         "PUT" to Regex("/api/v1/common/users/\\d+/change-is-superuser/"),
+        "POST" to Regex("/api/v1/upload/plan-photo/"),
     )
 
     fun getApiService(baseUrl: String, context: Context? = null): ApiService {

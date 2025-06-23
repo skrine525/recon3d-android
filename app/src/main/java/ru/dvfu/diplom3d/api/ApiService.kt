@@ -8,6 +8,9 @@ import retrofit2.http.PUT
 import retrofit2.http.FieldMap
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.Path
+import okhttp3.MultipartBody
+import retrofit2.http.Multipart
+import retrofit2.http.Part
 
 interface ApiService {
     @GET("/api/v1/common/meta")
@@ -55,6 +58,12 @@ interface ApiService {
 
     @PUT("/api/v1/common/users/{id}/change-is-superuser/")
     suspend fun changeIsSuperuser(@Path("id") id: Int, @Body body: UpdateFlagRequest): Response<Void>
+
+    @Multipart
+    @POST("/api/v1/upload/plan-photo/")
+    suspend fun uploadPlanPhoto(
+        @Part file: MultipartBody.Part
+    ): Response<UploadPhotoResponse>
 }
 
 // Примеры моделей для login/register
@@ -100,4 +109,14 @@ data class ChangePasswordRequest(
     val re_new_password: String
 )
 
-data class UpdateFlagRequest(val value: Boolean) 
+data class UpdateFlagRequest(val value: Boolean)
+
+data class UploadPhotoResponse(
+    val id: String,
+    val file_path: String,
+    val url: String,
+    val file_type: Int,
+    val source_type: Int,
+    val uploaded_by: Int,
+    val uploaded_at: String
+) 
