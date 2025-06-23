@@ -38,6 +38,7 @@
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+        <activity android:name=".EditMaskActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

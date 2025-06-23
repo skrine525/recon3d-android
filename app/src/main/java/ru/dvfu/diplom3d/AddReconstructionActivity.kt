@@ -251,6 +251,19 @@ class AddReconstructionActivity : AppCompatActivity() {
         maskProgress.layoutParams = maskProgressParams
         maskProgress.visibility = View.GONE
         maskPhotoBlock.addView(maskProgress)
+        // Кнопка 'Редактирование маски'
+        val btnEditMask = Button(this)
+        btnEditMask.text = "Редактирование маски"
+        btnEditMask.setBackgroundResource(R.drawable.blue_button)
+        btnEditMask.setTextColor(0xFFFFFFFF.toInt())
+        val btnEditMaskParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        btnEditMaskParams.topMargin = 16
+        btnEditMask.layoutParams = btnEditMaskParams
+        btnEditMask.isEnabled = false
+        maskLayout.addView(btnEditMask)
         maskLayout.addView(maskPhotoBlock)
         maskCard.addView(maskLayout)
         maskCard.visibility = View.VISIBLE
@@ -306,6 +319,7 @@ class AddReconstructionActivity : AppCompatActivity() {
                                 .error(android.R.drawable.ic_menu_report_image)
                                 .into(maskImageView)
                             maskPhotoText.visibility = View.GONE
+                            btnEditMask.isEnabled = true
                         }
                     } else {
                         Toast.makeText(this@AddReconstructionActivity, "Ошибка расчёта маски: ${response.code()}", Toast.LENGTH_LONG).show()
@@ -316,6 +330,15 @@ class AddReconstructionActivity : AppCompatActivity() {
                     maskProgress.visibility = View.GONE
                     btnMask.isEnabled = true
                 }
+            }
+        }
+        btnEditMask.setOnClickListener {
+            if (!maskUrl.isNullOrEmpty()) {
+                val intent = Intent(this, EditMaskActivity::class.java)
+                intent.putExtra("mask_url", maskUrl)
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "Сначала просчитайте маску", Toast.LENGTH_SHORT).show()
             }
         }
     }
