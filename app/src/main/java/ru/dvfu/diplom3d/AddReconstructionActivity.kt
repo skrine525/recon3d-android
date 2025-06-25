@@ -70,6 +70,7 @@ class AddReconstructionActivity : AppCompatActivity() {
     private lateinit var btnCalculateHoughLines: Button
     private lateinit var houghLinesProgress: ProgressBar
     private var uploadedHoughLinesId: String? = null
+    private var meshUrl: String? = null
 
     companion object {
         private const val REQUEST_CAMERA = 1001
@@ -363,6 +364,54 @@ class AddReconstructionActivity : AppCompatActivity() {
         houghLinesCard.addView(houghLinesLayout)
         content.addView(houghLinesCard)
 
+        // --- Карточка '3D-реконструкция' ---
+        val meshCard = MaterialCardView(this)
+        val meshCardParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        meshCardParams.bottomMargin = 32
+        meshCard.layoutParams = meshCardParams
+        meshCard.radius = 24f
+        meshCard.cardElevation = 8f
+        meshCard.setContentPadding(32, 32, 32, 32)
+        val meshLayout = LinearLayout(this)
+        meshLayout.orientation = LinearLayout.VERTICAL
+        val meshTitle = TextView(this)
+        meshTitle.text = "3D-реконструкция"
+        meshTitle.textSize = 20f
+        meshTitle.setTextColor(0xFF000000.toInt())
+        meshTitle.setTypeface(null, android.graphics.Typeface.BOLD)
+        meshLayout.addView(meshTitle)
+        // Кнопка 'Построить'
+        val btnBuildMesh = Button(this)
+        btnBuildMesh.text = "Построить"
+        btnBuildMesh.setBackgroundResource(R.drawable.green_button)
+        btnBuildMesh.setTextColor(0xFFFFFFFF.toInt())
+        val btnBuildMeshParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        btnBuildMeshParams.topMargin = 16
+        btnBuildMesh.layoutParams = btnBuildMeshParams
+        btnBuildMesh.isEnabled = false // станет активной после расчёта линий Хафа
+        meshLayout.addView(btnBuildMesh)
+        // Кнопка 'Просмотреть'
+        val btnViewMesh = Button(this)
+        btnViewMesh.text = "Просмотреть"
+        btnViewMesh.setBackgroundResource(R.drawable.blue_button)
+        btnViewMesh.setTextColor(0xFFFFFFFF.toInt())
+        val btnViewMeshParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        btnViewMeshParams.topMargin = 16
+        btnViewMesh.layoutParams = btnViewMeshParams
+        btnViewMesh.isEnabled = false // станет активной после успешного построения
+        meshLayout.addView(btnViewMesh)
+        meshCard.addView(meshLayout)
+        content.addView(meshCard)
+
         setContentView(layout)
         setSupportActionBar(toolbar)
 
@@ -537,6 +586,8 @@ class AddReconstructionActivity : AppCompatActivity() {
                                                } else {
                                                    // ничего не делаем
                                                }
+                                               // --- Активируем кнопку 'Построить' 3D ---
+                                               btnBuildMesh.isEnabled = true
                                            }
                                            override fun onLoadCleared(placeholder: android.graphics.drawable.Drawable?) {}
                                        })
@@ -563,6 +614,46 @@ class AddReconstructionActivity : AppCompatActivity() {
                     btnCalculateHoughLines.text = "Просчитать линии"
                     btnCalculateHoughLines.isEnabled = true
                 }
+            }
+        }
+        btnBuildMesh.setOnClickListener {
+            val planId = uploadedPhotoId
+            val maskId = uploadedHoughLinesId // используем id маски, как и для calculate-hough
+            if (planId.isNullOrEmpty() || maskId.isNullOrEmpty()) {
+                Toast.makeText(this, "Сначала просчитайте линии Хафа", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            btnBuildMesh.isEnabled = false
+            CoroutineScope(Dispatchers.Main).launch {
+                try {
+                    val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                    val baseUrl = prefs.getString("server_url", "") ?: ""
+                    val api = RetrofitInstance.getApiService(baseUrl, this@AddReconstructionActivity)
+                    val response = api.calculateMesh(ru.dvfu.diplom3d.api.CalculateMeshRequest(planId, maskId))
+                    if (response.isSuccessful) {
+                        val meshResp = response.body()
+                        meshUrl = meshResp?.url
+                        if (!meshUrl.isNullOrEmpty()) {
+                            btnViewMesh.isEnabled = true
+                            Toast.makeText(this@AddReconstructionActivity, "3D-модель построена!", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(this@AddReconstructionActivity, "Ошибка построения: ${response.code()}", Toast.LENGTH_LONG).show()
+                        btnBuildMesh.isEnabled = true
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(this@AddReconstructionActivity, "Ошибка построения: ${e.message}", Toast.LENGTH_LONG).show()
+                    btnBuildMesh.isEnabled = true
+                }
+            }
+        }
+        btnViewMesh.setOnClickListener {
+            val url = meshUrl
+            if (!url.isNullOrEmpty()) {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "Нет ссылки на 3D-модель", Toast.LENGTH_SHORT).show()
             }
         }
     }

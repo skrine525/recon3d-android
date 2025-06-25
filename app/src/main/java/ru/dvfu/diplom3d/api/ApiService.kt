@@ -83,6 +83,12 @@ interface ApiService {
     suspend fun calculateHough(
         @Body body: CalculateHoughRequest
     ): Response<CalculateHoughResponse>
+
+    @POST("/api/v1/reconstruction/calculate-mesh")
+    @Headers("Content-Type: application/json")
+    suspend fun calculateMesh(
+        @Body body: CalculateMeshRequest
+    ): Response<CalculateMeshResponse>
 }
 
 // Примеры моделей для login/register
@@ -161,5 +167,19 @@ data class CalculateHoughResponse(
     val created_at: String,
     val created_by: Int,
     val file_path: String,
+    val url: String
+)
+
+data class CalculateMeshRequest(
+    val plan_file_id: String,
+    val user_mask_file_id: String
+)
+data class CalculateMeshResponse(
+    val id: Int,
+    val mesh_file_path: String,
+    val created_at: String,
+    val created_by: Int,
+    val is_saved: Boolean,
+    val saved_at: String?,
     val url: String
 ) 
