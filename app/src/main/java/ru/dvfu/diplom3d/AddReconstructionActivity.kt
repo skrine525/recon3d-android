@@ -48,6 +48,7 @@ import android.widget.ProgressBar
 import com.bumptech.glide.Glide
 import java.net.URL
 import android.util.Log
+import java.io.FileOutputStream
 
 class AddReconstructionActivity : AppCompatActivity() {
     private var photoUri: Uri? = null
@@ -341,12 +342,20 @@ class AddReconstructionActivity : AppCompatActivity() {
                         maskUrl = maskResp?.url
                         if (!maskUrl.isNullOrEmpty()) {
                             Glide.with(this@AddReconstructionActivity)
+                                .asBitmap()
                                 .load(maskUrl)
-                                .placeholder(android.R.color.darker_gray)
-                                .error(android.R.drawable.ic_menu_report_image)
-                                .into(maskImageView)
-                            maskPhotoText.visibility = View.GONE
-                            btnEditMask.isEnabled = true
+                                .into(object : com.bumptech.glide.request.target.CustomTarget<Bitmap>() {
+                                    override fun onResourceReady(resource: Bitmap, transition: com.bumptech.glide.request.transition.Transition<in Bitmap>?) {
+                                        val maskFile = File(cacheDir, "mask_edit_${System.currentTimeMillis()}.png")
+                                        if (saveBitmapToFile(resource, maskFile)) {
+                                            btnEditMask.setTag(maskFile.absolutePath)
+                                        }
+                                        maskImageView.setImageBitmap(resource)
+                                        maskPhotoText.visibility = View.GONE
+                                        btnEditMask.isEnabled = true
+                                    }
+                                    override fun onLoadCleared(placeholder: android.graphics.drawable.Drawable?) {}
+                                })
                         }
                     } else {
                         Toast.makeText(this@AddReconstructionActivity, "Ошибка расчёта маски: ${response.code()}", Toast.LENGTH_LONG).show()
@@ -361,9 +370,10 @@ class AddReconstructionActivity : AppCompatActivity() {
             }
         }
         btnEditMask.setOnClickListener {
-            if (!maskUrl.isNullOrEmpty() && !uploadedPhotoId.isNullOrEmpty()) {
+            val maskPath = btnEditMask.getTag() as? String
+            if (!maskPath.isNullOrEmpty() && !uploadedPhotoId.isNullOrEmpty()) {
                 val intent = Intent(this, EditMaskActivity::class.java)
-                intent.putExtra("mask_url", maskUrl)
+                intent.putExtra("mask_path", maskPath)
                 val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
                 val baseUrl = prefs.getString("server_url", "") ?: ""
                 val planUrl = if (!uploadedPhotoId.isNullOrEmpty()) "$baseUrl/api/v1/upload/plan-photo/${uploadedPhotoId}/file/" else null
@@ -528,6 +538,17 @@ class AddReconstructionActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Требуются разрешения для работы с фото", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun saveBitmapToFile(bitmap: Bitmap, file: File): Boolean {
+        return try {
+            FileOutputStream(file).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            }
+            true
+        } catch (e: Exception) {
+            false
         }
     }
 }
