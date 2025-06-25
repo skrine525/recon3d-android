@@ -371,16 +371,14 @@ class AddReconstructionActivity : AppCompatActivity() {
         }
         btnEditMask.setOnClickListener {
             val maskPath = btnEditMask.getTag() as? String
-            if (!maskPath.isNullOrEmpty() && !uploadedPhotoId.isNullOrEmpty()) {
+            val planPath = photoUri?.path ?: croppedUri?.path // путь к локальному файлу плана
+            if (!maskPath.isNullOrEmpty() && !planPath.isNullOrEmpty()) {
                 val intent = Intent(this, EditMaskActivity::class.java)
                 intent.putExtra("mask_path", maskPath)
-                val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
-                val baseUrl = prefs.getString("server_url", "") ?: ""
-                val planUrl = if (!uploadedPhotoId.isNullOrEmpty()) "$baseUrl/api/v1/upload/plan-photo/${uploadedPhotoId}/file/" else null
-                intent.putExtra("plan_url", planUrl)
+                intent.putExtra("plan_path", planPath)
                 startActivity(intent)
             } else {
-                Toast.makeText(this, "Сначала просчитайте маску", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Сначала просчитайте маску и выберите план", Toast.LENGTH_SHORT).show()
             }
         }
     }
