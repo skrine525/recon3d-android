@@ -39,13 +39,27 @@ class MaskEditView(context: Context, val planBitmap: Bitmap, val maskBitmap: Bit
     private var minScale = 1f
     private var translateX = 0f
     private var translateY = 0f
+    private var isInitialized = false
+    private var viewW = 0f
+    private var viewH = 0f
+    private var startFocusX = 0f
+    private var startFocusY = 0f
+    private var startTranslateX = 0f
+    private var startTranslateY = 0f
+    private var startScale = 1f
+    private var lastTouchX = 0f
+    private var lastTouchY = 0f
     private var lastTranslateX = 0f
     private var lastTranslateY = 0f
     private var isPanning = false
-    private var lastTouchX = 0f
-    private var lastTouchY = 0f
-    private var isInitialized = false
-    private var pointerCount = 0
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        viewW = w.toFloat()
+        viewH = h.toFloat()
+        isInitialized = false
+        invalidate()
+    }
 
     private fun fixTranslation() {
         val viewW = width.toFloat()
@@ -68,20 +82,15 @@ class MaskEditView(context: Context, val planBitmap: Bitmap, val maskBitmap: Bit
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val viewW = width.toFloat()
-        val viewH = height.toFloat()
         val bmpW = planBitmap.width.toFloat()
         val bmpH = planBitmap.height.toFloat()
         // --- Инициализация стартового масштаба и позиции ---
         if (!isInitialized && viewW > 0 && viewH > 0) {
             minScale = viewW / bmpW
             scale = minScale
-            // Центрируем по вертикали
             val imgH = bmpH * scale
             translateX = 0f
             translateY = (viewH - imgH) / 2f
-            lastTranslateX = translateX
-            lastTranslateY = translateY
             isInitialized = true
         }
         matrix.reset()
@@ -111,31 +120,25 @@ class MaskEditView(context: Context, val planBitmap: Bitmap, val maskBitmap: Bit
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         scaleDetector.onTouchEvent(event)
-        pointerCount = event.pointerCount
         when (event.action and MotionEvent.ACTION_MASK) {
             MotionEvent.ACTION_DOWN -> {
                 isPanning = false
-                if (pointerCount >= 2) {
-                    isPanning = true
-                    lastTouchX = event.x
-                    lastTouchY = event.y
-                    lastTranslateX = translateX
-                    lastTranslateY = translateY
-                }
             }
             MotionEvent.ACTION_POINTER_DOWN -> {
-                if (pointerCount >= 2) {
+                if (event.pointerCount == 2) {
                     isPanning = true
-                    lastTouchX = event.getX(0)
-                    lastTouchY = event.getY(0)
+                    lastTouchX = (event.getX(0) + event.getX(1)) / 2f
+                    lastTouchY = (event.getY(0) + event.getY(1)) / 2f
                     lastTranslateX = translateX
                     lastTranslateY = translateY
                 }
             }
             MotionEvent.ACTION_MOVE -> {
-                if (isPanning && pointerCount >= 2 && !scaleDetector.isInProgress) {
-                    val dx = event.getX(0) - lastTouchX
-                    val dy = event.getY(0) - lastTouchY
+                if (isPanning && event.pointerCount == 2 && !scaleDetector.isInProgress) {
+                    val currTouchX = (event.getX(0) + event.getX(1)) / 2f
+                    val currTouchY = (event.getY(0) + event.getY(1)) / 2f
+                    val dx = currTouchX - lastTouchX
+                    val dy = currTouchY - lastTouchY
                     translateX = lastTranslateX + dx
                     translateY = lastTranslateY + dy
                     fixTranslation()
@@ -154,14 +157,13 @@ class MaskEditView(context: Context, val planBitmap: Bitmap, val maskBitmap: Bit
             val prevScale = scale
             scale *= detector.scaleFactor
             scale = scale.coerceIn(minScale, 5f)
-            // Центрируем зум относительно точки фокуса
+            // Центрируем зум относительно центра между пальцами
             val focusX = detector.focusX
             val focusY = detector.focusY
-            val dx = focusX - (width / 2f)
-            val dy = focusY - (height / 2f)
-            // Корректируем translate так, чтобы точка под пальцами оставалась на месте
-            translateX += (1 - scale / prevScale) * (focusX - translateX)
-            translateY += (1 - scale / prevScale) * (focusY - translateY)
+            val prevImageX = (focusX - translateX) / prevScale
+            val prevImageY = (focusY - translateY) / prevScale
+            translateX = focusX - prevImageX * scale
+            translateY = focusY - prevImageY * scale
             fixTranslation()
             invalidate()
             return true
