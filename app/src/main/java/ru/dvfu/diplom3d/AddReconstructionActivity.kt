@@ -323,6 +323,43 @@ class AddReconstructionActivity : AppCompatActivity() {
         btnHoughContainer.addView(houghLinesProgress)
         houghLinesLayout.addView(btnHoughContainer)
 
+        // --- ImageView для результата (аналогично другим карточкам) ---
+        val houghPhotoBlock = FrameLayout(this)
+        houghPhotoBlock.setBackgroundColor(0xFFCCCCCC.toInt())
+        val houghPhotoParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        houghPhotoParams.topMargin = 24
+        houghPhotoBlock.layoutParams = houghPhotoParams
+        // Устанавливаем высоту 16:9 после layout pass
+        houghPhotoBlock.post {
+            val width = houghPhotoBlock.width
+            val height = (width * 9f / 16f).toInt()
+            val params = houghPhotoBlock.layoutParams
+            params.height = height
+            houghPhotoBlock.layoutParams = params
+        }
+        val houghImageView = ImageView(this)
+        houghImageView.layoutParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        )
+        houghImageView.scaleType = ImageView.ScaleType.FIT_CENTER
+        houghPhotoBlock.addView(houghImageView)
+        val houghPhotoText = TextView(this)
+        houghPhotoText.text = "Линии Хафа"
+        houghPhotoText.textSize = 18f
+        houghPhotoText.setTextColor(0xFF888888.toInt())
+        houghPhotoText.gravity = android.view.Gravity.CENTER
+        val houghPhotoTextParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        )
+        houghPhotoText.layoutParams = houghPhotoTextParams
+        houghPhotoBlock.addView(houghPhotoText)
+        houghLinesLayout.addView(houghPhotoBlock)
+
         houghLinesCard.addView(houghLinesLayout)
         content.addView(houghLinesCard)
 
