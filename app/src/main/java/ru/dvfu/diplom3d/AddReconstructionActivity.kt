@@ -403,22 +403,13 @@ class AddReconstructionActivity : AppCompatActivity() {
         // Открытие результата Хафа на весь экран
         houghImageView.setOnClickListener {
             val houghPath = houghImageView.getTag(R.id.hough_url_tag) as? String
-            Log.d("HoughImageView", "onClick, tag: $houghPath")
-            Toast.makeText(this, "onClick: $houghPath", Toast.LENGTH_SHORT).show()
             if (!houghPath.isNullOrEmpty()) {
                 val file = File(houghPath)
                 if (file.exists()) {
-                    Log.d("HoughImageView", "File exists: ${file.absolutePath}")
-                    Toast.makeText(this, "Открываю: ${file.absolutePath}", Toast.LENGTH_SHORT).show()
                     val uri = Uri.fromFile(file).toString()
                     FullScreenImageDialogFragment.newInstance(uri)
                         .show(supportFragmentManager, "fullscreen_hough")
-                } else {
-                    Log.e("HoughImageView", "File does not exist: $houghPath")
-                    Toast.makeText(this, "Файл не найден: $houghPath", Toast.LENGTH_LONG).show()
                 }
-            } else {
-                Toast.makeText(this, "Нет пути к файлу/картинке", Toast.LENGTH_SHORT).show()
             }
         }
         btnMask.setOnClickListener {
@@ -455,18 +446,17 @@ class AddReconstructionActivity : AppCompatActivity() {
                                             btnEditMask.isEnabled = true
                                             btnCalculateHoughLines.isEnabled = true
                                         } else {
-                                            Log.e("HoughImageView", "Bitmap resource is null!")
-                                            Toast.makeText(this@AddReconstructionActivity, "Ошибка: bitmap == null", Toast.LENGTH_LONG).show()
+                                            // ничего не делаем
                                         }
                                     }
                                     override fun onLoadCleared(placeholder: android.graphics.drawable.Drawable?) {}
                                 })
                         }
                     } else {
-                        Toast.makeText(this@AddReconstructionActivity, "Ошибка расчёта маски: ${response.code()}", Toast.LENGTH_LONG).show()
+                        // ничего не делаем
                     }
                 } catch (e: Exception) {
-                    Toast.makeText(this@AddReconstructionActivity, "Ошибка расчёта маски: ${e.message}", Toast.LENGTH_LONG).show()
+                    // ничего не делаем
                 } finally {
                     maskProgress.visibility = View.GONE
                     btnMask.text = "Просчитать маску"
@@ -527,8 +517,6 @@ class AddReconstructionActivity : AppCompatActivity() {
                                val houghData = houghResponse.body()
                                val houghUrl = houghData?.url
                                if (!houghUrl.isNullOrEmpty()) {
-                                   Log.d("HoughImageView", "Start loading houghUrl: $houghUrl into $houghImageView")
-                                   Toast.makeText(this@AddReconstructionActivity, "Start loading: $houghUrl", Toast.LENGTH_SHORT).show()
                                    Glide.with(this@AddReconstructionActivity)
                                        .asBitmap()
                                        .load(houghUrl)
@@ -542,16 +530,12 @@ class AddReconstructionActivity : AppCompatActivity() {
                                                        }
                                                        houghImageView.setImageBitmap(resource)
                                                        houghImageView.setTag(R.id.hough_url_tag, houghFile.absolutePath)
-                                                       Log.d("HoughImageView", "setTag for houghImageView: $houghImageView, file: ${houghFile.absolutePath}")
-                                                       Toast.makeText(this@AddReconstructionActivity, "setTag: ${houghFile.absolutePath}", Toast.LENGTH_LONG).show()
                                                        houghPhotoText.visibility = View.GONE
                                                    } catch (e: Exception) {
-                                                       Log.e("HoughImageView", "Ошибка сохранения файла: ${e.message}")
-                                                       Toast.makeText(this@AddReconstructionActivity, "Ошибка сохранения файла", Toast.LENGTH_LONG).show()
+                                                       // ничего не делаем
                                                    }
                                                } else {
-                                                   Log.e("HoughImageView", "Bitmap resource is null!")
-                                                   Toast.makeText(this@AddReconstructionActivity, "Ошибка: bitmap == null", Toast.LENGTH_LONG).show()
+                                                   // ничего не делаем
                                                }
                                            }
                                            override fun onLoadCleared(placeholder: android.graphics.drawable.Drawable?) {}
