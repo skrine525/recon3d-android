@@ -9,6 +9,11 @@ import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import java.io.File
+import android.widget.Button
+import android.widget.SeekBar
+import android.widget.LinearLayout
+import android.widget.ToggleButton
+import java.util.Stack
 
 class EditMaskActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,7 +34,50 @@ class EditMaskActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
         val maskEditView = MaskEditView(this, planBitmap, maskBitmap)
         layout.addView(maskEditView)
+        // --- Панель управления ---
+        val controls = LinearLayout(this)
+        controls.orientation = LinearLayout.HORIZONTAL
+        controls.setPadding(32, 16, 32, 16)
+        controls.setBackgroundColor(0xAAFFFFFF.toInt())
+        val params = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT
+        )
+        params.gravity = android.view.Gravity.BOTTOM
+        controls.layoutParams = params
+        // Кнопка режим кисти
+        val toggleMode = ToggleButton(this)
+        toggleMode.textOn = "Удалять"
+        toggleMode.textOff = "Добавлять"
+        toggleMode.text = "Добавлять"
+        controls.addView(toggleMode)
+        // Undo
+        val undoBtn = Button(this)
+        undoBtn.text = "Отменить"
+        controls.addView(undoBtn)
+        // Слайдер толщины
+        val seekBar = SeekBar(this)
+        seekBar.max = 100
+        seekBar.progress = 32
+        val seekParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        seekBar.layoutParams = seekParams
+        controls.addView(seekBar)
+        layout.addView(controls)
         setContentView(layout)
+        // --- Логика ---
+        toggleMode.setOnCheckedChangeListener { _, isChecked ->
+            maskEditView.setEraseMode(isChecked)
+        }
+        undoBtn.setOnClickListener {
+            maskEditView.undo()
+        }
+        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                maskEditView.setBrushSize(progress.coerceAtLeast(4).toFloat())
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
     }
 }
 
@@ -56,10 +104,13 @@ class MaskEditView(context: Context, val planBitmap: Bitmap, val maskBitmap: Bit
     private var isDrawing = false
     private var lastDrawX = 0f
     private var lastDrawY = 0f
+    private var isEraseMode = false
+    private var brushSize = 32f
+    private val undoStack = Stack<Bitmap>()
     private val drawPaint = Paint().apply {
-        color = Color.BLACK // Можно поменять на белый, если нужно
+        color = Color.WHITE
         style = Paint.Style.STROKE
-        strokeWidth = 32f // Толщина кисти в px
+        strokeWidth = brushSize
         strokeCap = Paint.Cap.ROUND
         isAntiAlias = true
     }
@@ -139,6 +190,9 @@ class MaskEditView(context: Context, val planBitmap: Bitmap, val maskBitmap: Bit
                     val (x, y) = screenToMask(event.x, event.y)
                     lastDrawX = x
                     lastDrawY = y
+                    // Сохраняем в undo стек
+                    val snap = maskBitmap.copy(Bitmap.Config.ARGB_8888, true)
+                    undoStack.push(snap)
                 }
                 MotionEvent.ACTION_MOVE -> {
                     if (isDrawing) {
@@ -216,5 +270,24 @@ class MaskEditView(context: Context, val planBitmap: Bitmap, val maskBitmap: Bit
         val x = (screenX - translateX) / scaleX
         val y = (screenY - translateY) / scaleY
         return Pair(x.coerceIn(0f, bmpW - 1), y.coerceIn(0f, bmpH - 1))
+    }
+
+    fun setEraseMode(erase: Boolean) {
+        isEraseMode = erase
+        drawPaint.color = if (erase) Color.BLACK else Color.WHITE
+    }
+
+    fun setBrushSize(size: Float) {
+        brushSize = size
+        drawPaint.strokeWidth = brushSize
+    }
+
+    fun undo() {
+        if (undoStack.isNotEmpty()) {
+            val prev = undoStack.pop()
+            val c = Canvas(maskBitmap)
+            c.drawBitmap(prev, 0f, 0f, null)
+            invalidate()
+        }
     }
 } 
