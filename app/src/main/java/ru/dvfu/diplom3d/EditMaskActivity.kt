@@ -98,7 +98,7 @@ class MaskEditView(context: Context, val planBitmap: Bitmap, val maskBitmap: Bit
         val maskHighlight = Bitmap.createBitmap(maskBitmap.width, maskBitmap.height, Bitmap.Config.ARGB_8888)
         val maskPixels = IntArray(maskBitmap.width * maskBitmap.height)
         maskBitmap.getPixels(maskPixels, 0, maskBitmap.width, 0, 0, maskBitmap.width, maskBitmap.height)
-        val highlightColor = Color.argb(100, 255, 255, 255) // Более прозрачный белый
+        val highlightColor = Color.argb(153, 255, 255, 255) // 60% непрозрачности (60% opacity)
         for (i in maskPixels.indices) {
             if (maskPixels[i] == Color.WHITE) maskPixels[i] = highlightColor else maskPixels[i] = Color.TRANSPARENT
         }
