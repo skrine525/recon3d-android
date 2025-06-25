@@ -14,6 +14,8 @@ import android.widget.SeekBar
 import android.widget.LinearLayout
 import android.widget.ToggleButton
 import java.util.Stack
+import android.widget.TextView
+import android.view.View
 
 class EditMaskActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,19 +52,54 @@ class EditMaskActivity : AppCompatActivity() {
         toggleMode.textOn = "Удалять"
         toggleMode.textOff = "Добавлять"
         toggleMode.text = "Добавлять"
+        toggleMode.setBackgroundResource(R.drawable.blue_button)
+        toggleMode.setTextColor(0xFFFFFFFF.toInt())
+        val toggleParams = LinearLayout.LayoutParams(0, 120, 1f) // фиксированная высота
+        toggleParams.marginEnd = 16
+        toggleMode.layoutParams = toggleParams
         controls.addView(toggleMode)
         // Undo
         val undoBtn = Button(this)
         undoBtn.text = "Отменить"
+        undoBtn.setBackgroundResource(R.drawable.red_button)
+        undoBtn.setTextColor(0xFFFFFFFF.toInt())
+        val undoParams = LinearLayout.LayoutParams(0, 120, 1f) // фиксированная высота
+        undoParams.marginEnd = 16
+        undoBtn.layoutParams = undoParams
         controls.addView(undoBtn)
-        // Слайдер толщины
+        // Слайдер толщины с подписью
+        val brushLayout = LinearLayout(this)
+        brushLayout.orientation = LinearLayout.VERTICAL
+        val brushLabel = TextView(this)
+        brushLabel.text = "Толщина кисти"
+        brushLabel.textSize = 14f
+        brushLabel.setTextColor(0xFF000000.toInt())
+        brushLabel.textAlignment = View.TEXT_ALIGNMENT_CENTER
+        brushLayout.addView(brushLabel)
         val seekBar = SeekBar(this)
         seekBar.max = 100
         seekBar.progress = 32
-        val seekParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-        seekBar.layoutParams = seekParams
-        controls.addView(seekBar)
+        seekBar.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        brushLayout.addView(seekBar)
+        val brushParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 2f)
+        brushLayout.layoutParams = brushParams
+        controls.addView(brushLayout)
         layout.addView(controls)
+        // Кнопка сохранить — отдельным блоком ниже
+        val saveBtn = Button(this)
+        saveBtn.text = "Сохранить"
+        saveBtn.setBackgroundResource(R.drawable.green_button)
+        saveBtn.setTextColor(0xFFFFFFFF.toInt())
+        val saveParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT
+        )
+        saveParams.gravity = android.view.Gravity.BOTTOM
+        saveParams.setMargins(64, 0, 64, 32)
+        saveBtn.layoutParams = saveParams
+        // Сдвигаем кнопку выше нижней панели
+        saveBtn.translationY = -180f
+        layout.addView(saveBtn)
         setContentView(layout)
         // --- Логика ---
         toggleMode.setOnCheckedChangeListener { _, isChecked ->
