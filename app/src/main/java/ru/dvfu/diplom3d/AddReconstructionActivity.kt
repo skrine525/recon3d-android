@@ -482,6 +482,28 @@ class AddReconstructionActivity : AppCompatActivity() {
                        val houghResp = response.body()
                        uploadedHoughLinesId = houghResp?.id
                        Toast.makeText(this@AddReconstructionActivity, "Маска для расчёта линий успешно загружена!", Toast.LENGTH_SHORT).show()
+                       val planId = uploadedPhotoId
+                       val maskId = houghResp?.id
+                       if (!planId.isNullOrEmpty() && !maskId.isNullOrEmpty()) {
+                           val houghResponse = api.calculateHough(ru.dvfu.diplom3d.api.CalculateHoughRequest(planId, maskId))
+                           if (houghResponse.isSuccessful) {
+                               val houghData = houghResponse.body()
+                               val houghUrl = houghData?.url
+                               if (!houghUrl.isNullOrEmpty()) {
+                                   Glide.with(this@AddReconstructionActivity)
+                                       .load(houghUrl)
+                                       .into(houghImageView)
+                                   houghPhotoText.visibility = View.GONE
+                               } else {
+                                   houghPhotoText.visibility = View.VISIBLE
+                                   Toast.makeText(this@AddReconstructionActivity, "Пустой url в ответе!", Toast.LENGTH_LONG).show()
+                               }
+                           } else {
+                               val errorBody = houghResponse.errorBody()?.string()
+                               Log.e("HoughError", "Code: ${houghResponse.code()}, Body: $errorBody")
+                               Toast.makeText(this@AddReconstructionActivity, "Ошибка расчёта линий: ${houghResponse.code()}", Toast.LENGTH_LONG).show()
+                           }
+                       }
                     } else {
                         val errorBody = response.errorBody()?.string()
                         Log.e("UploadMaskError", "Code: ${response.code()}, Body: $errorBody")

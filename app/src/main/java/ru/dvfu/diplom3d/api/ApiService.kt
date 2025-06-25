@@ -77,6 +77,12 @@ interface ApiService {
     suspend fun uploadUserMask(
         @Part file: MultipartBody.Part
     ): Response<UploadPhotoResponse>
+
+    @POST("/api/v1/reconstruction/calculate-hough")
+    @Headers("Content-Type: application/json")
+    suspend fun calculateHough(
+        @Body body: CalculateHoughRequest
+    ): Response<CalculateHoughResponse>
 }
 
 // Примеры моделей для login/register
@@ -138,6 +144,20 @@ data class CalculateMaskRequest(val file_id: String)
 data class CalculateMaskResponse(
     val id: String,
     val source_upload_file_id: String,
+    val created_at: String,
+    val created_by: Int,
+    val file_path: String,
+    val url: String
+)
+
+data class CalculateHoughRequest(
+    val plan_file_id: String,
+    val user_mask_file_id: String
+)
+data class CalculateHoughResponse(
+    val id: String,
+    val plan_upload_file_id: String,
+    val user_mask_upload_file_id: String,
     val created_at: String,
     val created_by: Int,
     val file_path: String,
