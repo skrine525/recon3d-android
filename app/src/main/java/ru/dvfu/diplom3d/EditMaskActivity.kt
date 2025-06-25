@@ -47,6 +47,9 @@ class MaskEditView(context: Context, val planBitmap: Bitmap, val maskBitmap: Bit
         val fitRect = RectF(left, top, left + outW, top + outH)
         // Рисуем план
         canvas.drawBitmap(planBitmap, null, fitRect, null)
+        // Затемняем план
+        val darkenPaint = Paint().apply { color = Color.argb(70, 0, 0, 0) }
+        canvas.drawRect(fitRect, darkenPaint)
         // Создаём маску с белой подсветкой только на белых участках
         val maskHighlight = Bitmap.createBitmap(maskBitmap.width, maskBitmap.height, Bitmap.Config.ARGB_8888)
         val maskCanvas = Canvas(maskHighlight)
