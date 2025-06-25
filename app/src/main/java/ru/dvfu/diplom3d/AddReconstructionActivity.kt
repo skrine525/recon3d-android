@@ -527,11 +527,35 @@ class AddReconstructionActivity : AppCompatActivity() {
                                val houghData = houghResponse.body()
                                val houghUrl = houghData?.url
                                if (!houghUrl.isNullOrEmpty()) {
+                                   Log.d("HoughImageView", "Start loading houghUrl: $houghUrl into $houghImageView")
+                                   Toast.makeText(this@AddReconstructionActivity, "Start loading: $houghUrl", Toast.LENGTH_SHORT).show()
                                    Glide.with(this@AddReconstructionActivity)
+                                       .asBitmap()
                                        .load(houghUrl)
-                                       .into(houghImageView)
-                                   houghImageView.setTag(R.id.hough_url_tag, houghUrl)
-                                   houghPhotoText.visibility = View.GONE
+                                       .into(object : com.bumptech.glide.request.target.CustomTarget<Bitmap>() {
+                                           override fun onResourceReady(resource: Bitmap, transition: com.bumptech.glide.request.transition.Transition<in Bitmap>?) {
+                                               if (resource != null) {
+                                                   val houghFile = File(cacheDir, "hough_result_${System.currentTimeMillis()}.jpg")
+                                                   try {
+                                                       FileOutputStream(houghFile).use { out ->
+                                                           resource.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                                                       }
+                                                       houghImageView.setImageBitmap(resource)
+                                                       houghImageView.setTag(R.id.hough_url_tag, houghFile.absolutePath)
+                                                       Log.d("HoughImageView", "setTag for houghImageView: $houghImageView, file: ${houghFile.absolutePath}")
+                                                       Toast.makeText(this@AddReconstructionActivity, "setTag: ${houghFile.absolutePath}", Toast.LENGTH_LONG).show()
+                                                       houghPhotoText.visibility = View.GONE
+                                                   } catch (e: Exception) {
+                                                       Log.e("HoughImageView", "Ошибка сохранения файла: ${e.message}")
+                                                       Toast.makeText(this@AddReconstructionActivity, "Ошибка сохранения файла", Toast.LENGTH_LONG).show()
+                                                   }
+                                               } else {
+                                                   Log.e("HoughImageView", "Bitmap resource is null!")
+                                                   Toast.makeText(this@AddReconstructionActivity, "Ошибка: bitmap == null", Toast.LENGTH_LONG).show()
+                                               }
+                                           }
+                                           override fun onLoadCleared(placeholder: android.graphics.drawable.Drawable?) {}
+                                       })
                                } else {
                                    houghPhotoText.visibility = View.VISIBLE
                                    Toast.makeText(this@AddReconstructionActivity, "Пустой url в ответе!", Toast.LENGTH_LONG).show()
