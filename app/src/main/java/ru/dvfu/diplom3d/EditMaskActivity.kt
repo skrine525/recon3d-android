@@ -233,6 +233,10 @@ class MaskEditView(context: Context, val planBitmap: Bitmap, val maskBitmap: Bit
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        // Если появляется второй палец — завершить рисование
+        if (event.pointerCount > 1 || event.action == MotionEvent.ACTION_POINTER_DOWN) {
+            isDrawing = false
+        }
         // Рисование одним пальцем
         if (event.pointerCount == 1) {
             when (event.action) {
