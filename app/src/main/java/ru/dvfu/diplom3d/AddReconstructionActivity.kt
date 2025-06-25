@@ -186,52 +186,6 @@ class AddReconstructionActivity : AppCompatActivity() {
         card.addView(cardLayout)
         content.addView(card)
 
-        // --- Карточка 'Маска стен' (только кнопка и прогресс) ---
-        maskCard = MaterialCardView(this)
-        val maskCardParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        maskCardParams.bottomMargin = 32
-        maskCard.layoutParams = maskCardParams
-        maskCard.radius = 24f
-        maskCard.cardElevation = 8f
-        maskCard.setContentPadding(32, 32, 32, 32)
-        val maskLayout = LinearLayout(this)
-        maskLayout.orientation = LinearLayout.VERTICAL
-        val maskTitle = TextView(this)
-        maskTitle.text = "Маска стен"
-        maskTitle.textSize = 20f
-        maskTitle.setTextColor(0xFF000000.toInt())
-        maskTitle.setTypeface(null, android.graphics.Typeface.BOLD)
-        maskLayout.addView(maskTitle)
-        btnMask = Button(this)
-        btnMask.text = "Просчитать маску"
-        btnMask.setBackgroundResource(R.drawable.green_button)
-        btnMask.setTextColor(0xFFFFFFFF.toInt())
-        btnMask.isEnabled = false // неактивна до загрузки
-        val btnMaskParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        btnMaskParams.topMargin = 24
-        btnMask.layoutParams = btnMaskParams
-        // Создаём FrameLayout для кнопки и прогресса
-        val btnMaskContainer = FrameLayout(this)
-        btnMaskContainer.layoutParams = btnMaskParams
-        btnMaskContainer.addView(btnMask)
-        // Прогресс-бар для маски внутри кнопки
-        maskProgress = ProgressBar(this, null, android.R.attr.progressBarStyleSmall)
-        val maskProgressParams = FrameLayout.LayoutParams(64, 64)
-        maskProgressParams.gravity = android.view.Gravity.CENTER
-        maskProgress.layoutParams = maskProgressParams
-        maskProgress.visibility = View.GONE
-        btnMaskContainer.addView(maskProgress)
-        maskLayout.addView(btnMaskContainer)
-        maskCard.addView(maskLayout)
-        maskCard.visibility = View.VISIBLE
-        content.addView(maskCard)
-
         // --- Новая карточка 'Редактирование маски' ---
         val editMaskCard = MaterialCardView(this)
         val editMaskCardParams = LinearLayout.LayoutParams(
@@ -246,11 +200,34 @@ class AddReconstructionActivity : AppCompatActivity() {
         val editMaskLayout = LinearLayout(this)
         editMaskLayout.orientation = LinearLayout.VERTICAL
         val editMaskTitle = TextView(this)
-        editMaskTitle.text = "Редактирование маски"
+        editMaskTitle.text = "Маска стен"
         editMaskTitle.textSize = 20f
         editMaskTitle.setTextColor(0xFF000000.toInt())
         editMaskTitle.setTypeface(null, android.graphics.Typeface.BOLD)
         editMaskLayout.addView(editMaskTitle)
+        // Кнопка 'Просчитать маску' и прогресс над фото
+        btnMask = Button(this)
+        btnMask.text = "Просчитать маску"
+        btnMask.setBackgroundResource(R.drawable.green_button)
+        btnMask.setTextColor(0xFFFFFFFF.toInt())
+        btnMask.isEnabled = false // неактивна до загрузки
+        val btnMaskParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        btnMaskParams.topMargin = 16
+        btnMask.layoutParams = btnMaskParams
+        // Прогресс-бар для маски внутри кнопки
+        val btnMaskContainer = FrameLayout(this)
+        btnMaskContainer.layoutParams = btnMaskParams
+        btnMaskContainer.addView(btnMask)
+        maskProgress = ProgressBar(this, null, android.R.attr.progressBarStyleSmall)
+        val maskProgressParams = FrameLayout.LayoutParams(64, 64)
+        maskProgressParams.gravity = android.view.Gravity.CENTER
+        maskProgress.layoutParams = maskProgressParams
+        maskProgress.visibility = View.GONE
+        btnMaskContainer.addView(maskProgress)
+        editMaskLayout.addView(btnMaskContainer)
         // Серый блок под маску с соотношением 16:9
         val displayMetrics = resources.displayMetrics
         val blockWidth = displayMetrics.widthPixels - 64 // padding
