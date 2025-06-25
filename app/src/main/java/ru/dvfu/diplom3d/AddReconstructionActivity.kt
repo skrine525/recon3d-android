@@ -67,6 +67,9 @@ class AddReconstructionActivity : AppCompatActivity() {
     private lateinit var maskProgress: ProgressBar
     private var savedMaskPath: String? = null
     private lateinit var btnEditMask: Button
+    private lateinit var btnCalculateHoughLines: Button
+    private lateinit var houghLinesProgress: ProgressBar
+    private var uploadedHoughLinesId: String? = null
 
     companion object {
         private const val REQUEST_CAMERA = 1001
@@ -276,6 +279,53 @@ class AddReconstructionActivity : AppCompatActivity() {
         editMaskCard.addView(editMaskLayout)
         content.addView(editMaskCard)
 
+        // --- Новая карточка 'Линии Хафа' ---
+        val houghLinesCard = MaterialCardView(this)
+        val houghLinesCardParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        houghLinesCardParams.bottomMargin = 32
+        houghLinesCard.layoutParams = houghLinesCardParams
+        houghLinesCard.radius = 24f
+        houghLinesCard.cardElevation = 8f
+        houghLinesCard.setContentPadding(32, 32, 32, 32)
+        val houghLinesLayout = LinearLayout(this)
+        houghLinesLayout.orientation = LinearLayout.VERTICAL
+        val houghLinesTitle = TextView(this)
+        houghLinesTitle.text = "Линии Хафа"
+        houghLinesTitle.textSize = 20f
+        houghLinesTitle.setTextColor(0xFF000000.toInt())
+        houghLinesTitle.setTypeface(null, android.graphics.Typeface.BOLD)
+        houghLinesLayout.addView(houghLinesTitle)
+
+        btnCalculateHoughLines = Button(this)
+        btnCalculateHoughLines.text = "Просчитать линии"
+        btnCalculateHoughLines.setBackgroundResource(R.drawable.green_button)
+        btnCalculateHoughLines.setTextColor(0xFFFFFFFF.toInt())
+        btnCalculateHoughLines.isEnabled = false // Изначально неактивна
+        val btnHoughParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        btnHoughParams.topMargin = 16
+        btnCalculateHoughLines.layoutParams = btnHoughParams
+
+        val btnHoughContainer = FrameLayout(this)
+        btnHoughContainer.layoutParams = btnHoughParams
+        btnHoughContainer.addView(btnCalculateHoughLines)
+
+        houghLinesProgress = ProgressBar(this, null, android.R.attr.progressBarStyleSmall)
+        val houghProgressParams = FrameLayout.LayoutParams(64, 64)
+        houghProgressParams.gravity = android.view.Gravity.CENTER
+        houghLinesProgress.layoutParams = houghProgressParams
+        houghLinesProgress.visibility = View.GONE
+        btnHoughContainer.addView(houghLinesProgress)
+        houghLinesLayout.addView(btnHoughContainer)
+
+        houghLinesCard.addView(houghLinesLayout)
+        content.addView(houghLinesCard)
+
         setContentView(layout)
         setSupportActionBar(toolbar)
 
@@ -326,13 +376,14 @@ class AddReconstructionActivity : AppCompatActivity() {
                                 .load(maskUrl)
                                 .into(object : com.bumptech.glide.request.target.CustomTarget<Bitmap>() {
                                     override fun onResourceReady(resource: Bitmap, transition: com.bumptech.glide.request.transition.Transition<in Bitmap>?) {
-                                        val maskFile = File(cacheDir, "mask_edit_${System.currentTimeMillis()}.png")
+                                        val maskFile = File(cacheDir, "mask_edit_${System.currentTimeMillis()}.jpg")
                                         if (saveBitmapToFile(resource, maskFile)) {
                                             btnEditMask.setTag(maskFile.absolutePath)
                                         }
                                         maskImageView.setImageBitmap(resource)
                                         maskPhotoText.visibility = View.GONE
                                         btnEditMask.isEnabled = true
+                                        btnCalculateHoughLines.isEnabled = true
                                     }
                                     override fun onLoadCleared(placeholder: android.graphics.drawable.Drawable?) {}
                                 })
@@ -359,6 +410,54 @@ class AddReconstructionActivity : AppCompatActivity() {
                 startActivityForResult(intent, 1234)
             } else {
                 Toast.makeText(this, "Сначала просчитайте маску и выберите план", Toast.LENGTH_SHORT).show()
+            }
+        }
+        btnCalculateHoughLines.setOnClickListener {
+            val maskPath = savedMaskPath ?: (btnEditMask.getTag() as? String)
+            if (maskPath.isNullOrEmpty()) {
+                Toast.makeText(this, "Маска не найдена. Сначала просчитайте или отредактируйте маску.", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+
+            Toast.makeText(this, "Выполняется загрузка маски...", Toast.LENGTH_SHORT).show()
+            btnCalculateHoughLines.isEnabled = false
+            houghLinesProgress.visibility = View.VISIBLE
+            btnCalculateHoughLines.text = ""
+
+            val maskFile = File(maskPath)
+            if (!maskFile.exists()) {
+                Toast.makeText(this, "Файл маски не найден.", Toast.LENGTH_SHORT).show()
+                btnCalculateHoughLines.isEnabled = true
+                houghLinesProgress.visibility = View.GONE
+                btnCalculateHoughLines.text = "Просчитать линии"
+                return@setOnClickListener
+            }
+
+            CoroutineScope(Dispatchers.Main).launch {
+                try {
+                    val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                    val baseUrl = prefs.getString("server_url", "") ?: ""
+                    val api = RetrofitInstance.getApiService(baseUrl, this@AddReconstructionActivity)
+                    val requestFile = maskFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                    val body = MultipartBody.Part.createFormData("file", maskFile.name, requestFile)
+                    val response = api.uploadUserMask(body)
+                    if (response.isSuccessful) {
+                       val houghResp = response.body()
+                       uploadedHoughLinesId = houghResp?.id
+                       Toast.makeText(this@AddReconstructionActivity, "Маска для расчёта линий успешно загружена!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        val errorBody = response.errorBody()?.string()
+                        Log.e("UploadMaskError", "Code: ${response.code()}, Body: $errorBody")
+                        Toast.makeText(this@AddReconstructionActivity, "Ошибка загрузки маски: ${response.code()}", Toast.LENGTH_LONG).show()
+                    }
+                } catch (e: Exception) {
+                    Log.e("UploadMaskError", "Exception: ${e.message}", e)
+                    Toast.makeText(this@AddReconstructionActivity, "Ошибка загрузки маски: ${e.message}", Toast.LENGTH_LONG).show()
+                } finally {
+                    houghLinesProgress.visibility = View.GONE
+                    btnCalculateHoughLines.text = "Просчитать линии"
+                    btnCalculateHoughLines.isEnabled = true
+                }
             }
         }
     }
@@ -409,6 +508,7 @@ class AddReconstructionActivity : AppCompatActivity() {
                 maskImageView.setImageBitmap(bitmap)
                 maskPhotoText.visibility = View.GONE
                 btnEditMask.setTag(path)
+                btnCalculateHoughLines.isEnabled = true
             }
         }
         if (resultCode != Activity.RESULT_OK) return
@@ -532,7 +632,7 @@ class AddReconstructionActivity : AppCompatActivity() {
     private fun saveBitmapToFile(bitmap: Bitmap, file: File): Boolean {
         return try {
             FileOutputStream(file).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
             }
             true
         } catch (e: Exception) {

@@ -120,9 +120,9 @@ class EditMaskActivity : AppCompatActivity() {
         })
         saveBtn.setOnClickListener {
             // Сохраняем maskBitmap в файл
-            val file = File(filesDir, "mask_saved_${System.currentTimeMillis()}.png")
+            val file = File(filesDir, "mask_saved_${System.currentTimeMillis()}.jpg")
             val out = FileOutputStream(file)
-            maskBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            maskBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
             out.flush()
             out.close()
             val resultIntent = Intent()

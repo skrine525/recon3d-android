@@ -71,6 +71,12 @@ interface ApiService {
     suspend fun calculateInitialMask(
         @Body body: CalculateMaskRequest
     ): Response<CalculateMaskResponse>
+
+    @Multipart
+    @POST("/api/v1/upload/user-mask/")
+    suspend fun uploadUserMask(
+        @Part file: MultipartBody.Part
+    ): Response<UploadPhotoResponse>
 }
 
 // Примеры моделей для login/register
