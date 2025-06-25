@@ -168,7 +168,7 @@ class AddReconstructionActivity : AppCompatActivity() {
         imageView.scaleType = ImageView.ScaleType.CENTER_CROP
         photoBlock.addView(imageView)
         photoText = TextView(this)
-        photoText.text = "Фото"
+        photoText.text = "План"
         photoText.textSize = 18f
         photoText.setTextColor(0xFF888888.toInt())
         photoText.gravity = android.view.Gravity.CENTER
@@ -251,7 +251,7 @@ class AddReconstructionActivity : AppCompatActivity() {
         maskImageView.scaleType = ImageView.ScaleType.FIT_CENTER
         maskPhotoBlock.addView(maskImageView)
         maskPhotoText = TextView(this)
-        maskPhotoText.text = "Фото"
+        maskPhotoText.text = "Маска"
         maskPhotoText.textSize = 18f
         maskPhotoText.setTextColor(0xFF888888.toInt())
         maskPhotoText.gravity = android.view.Gravity.CENTER
