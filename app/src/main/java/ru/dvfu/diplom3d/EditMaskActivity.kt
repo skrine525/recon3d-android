@@ -18,6 +18,7 @@ import android.widget.TextView
 import android.view.View
 import android.content.Intent
 import java.io.FileOutputStream
+import androidx.appcompat.app.AlertDialog
 
 class EditMaskActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -129,6 +130,15 @@ class EditMaskActivity : AppCompatActivity() {
             setResult(RESULT_OK, resultIntent)
             finish()
         }
+    }
+
+    override fun onBackPressed() {
+        AlertDialog.Builder(this)
+            .setTitle("Подтверждение")
+            .setMessage("Вы действительно хотите выйти? Несохранённые изменения будут потеряны.")
+            .setPositiveButton("Да") { _, _ -> super.onBackPressed() }
+            .setNegativeButton("Нет", null)
+            .show()
     }
 }
 

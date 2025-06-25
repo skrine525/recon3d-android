@@ -49,6 +49,7 @@ import com.bumptech.glide.Glide
 import java.net.URL
 import android.util.Log
 import java.io.FileOutputStream
+import androidx.appcompat.app.AlertDialog
 
 class AddReconstructionActivity : AppCompatActivity() {
     private var photoUri: Uri? = null
@@ -560,6 +561,15 @@ class AddReconstructionActivity : AppCompatActivity() {
         } catch (e: Exception) {
             false
         }
+    }
+
+    override fun onBackPressed() {
+        AlertDialog.Builder(this)
+            .setTitle("Подтверждение")
+            .setMessage("Вы действительно хотите выйти? Несохранённые изменения будут потеряны.")
+            .setPositiveButton("Да") { _, _ -> super.onBackPressed() }
+            .setNegativeButton("Нет", null)
+            .show()
     }
 }
 
