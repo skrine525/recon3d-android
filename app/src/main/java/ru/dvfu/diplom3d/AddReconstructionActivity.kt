@@ -64,6 +64,8 @@ class AddReconstructionActivity : AppCompatActivity() {
     private lateinit var btnMask: Button
     private var maskUrl: String? = null
     private lateinit var maskProgress: ProgressBar
+    private var savedMaskPath: String? = null
+    private lateinit var btnEditMask: Button
 
     companion object {
         private const val REQUEST_CAMERA = 1001
@@ -281,7 +283,7 @@ class AddReconstructionActivity : AppCompatActivity() {
         maskPhotoText.visibility = View.VISIBLE
         editMaskLayout.addView(maskPhotoBlock)
         // Кнопка 'Редактирование маски'
-        val btnEditMask = Button(this)
+        btnEditMask = Button(this)
         btnEditMask.text = "Редактирование маски"
         btnEditMask.setBackgroundResource(R.drawable.blue_button)
         btnEditMask.setTextColor(0xFFFFFFFF.toInt())
@@ -370,13 +372,13 @@ class AddReconstructionActivity : AppCompatActivity() {
             }
         }
         btnEditMask.setOnClickListener {
-            val maskPath = btnEditMask.getTag() as? String
+            val maskPath = savedMaskPath ?: (btnEditMask.getTag() as? String)
             val planPath = photoUri?.path ?: croppedUri?.path // путь к локальному файлу плана
             if (!maskPath.isNullOrEmpty() && !planPath.isNullOrEmpty()) {
                 val intent = Intent(this, EditMaskActivity::class.java)
                 intent.putExtra("mask_path", maskPath)
                 intent.putExtra("plan_path", planPath)
-                startActivity(intent)
+                startActivityForResult(intent, 1234)
             } else {
                 Toast.makeText(this, "Сначала просчитайте маску и выберите план", Toast.LENGTH_SHORT).show()
             }
@@ -421,6 +423,16 @@ class AddReconstructionActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 1234 && resultCode == RESULT_OK && data != null) {
+            val path = data.getStringExtra("saved_mask_path")
+            if (!path.isNullOrEmpty()) {
+                savedMaskPath = path
+                val bitmap = BitmapFactory.decodeFile(path)
+                maskImageView.setImageBitmap(bitmap)
+                maskPhotoText.visibility = View.GONE
+                btnEditMask.setTag(path)
+            }
+        }
         if (resultCode != Activity.RESULT_OK) return
         when (requestCode) {
             REQUEST_CAMERA -> {

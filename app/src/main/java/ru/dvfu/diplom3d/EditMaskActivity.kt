@@ -16,6 +16,8 @@ import android.widget.ToggleButton
 import java.util.Stack
 import android.widget.TextView
 import android.view.View
+import android.content.Intent
+import java.io.FileOutputStream
 
 class EditMaskActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -115,6 +117,18 @@ class EditMaskActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
+        saveBtn.setOnClickListener {
+            // Сохраняем maskBitmap в файл
+            val file = File(filesDir, "mask_saved_${System.currentTimeMillis()}.png")
+            val out = FileOutputStream(file)
+            maskBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            out.flush()
+            out.close()
+            val resultIntent = Intent()
+            resultIntent.putExtra("saved_mask_path", file.absolutePath)
+            setResult(RESULT_OK, resultIntent)
+            finish()
+        }
     }
 }
 
