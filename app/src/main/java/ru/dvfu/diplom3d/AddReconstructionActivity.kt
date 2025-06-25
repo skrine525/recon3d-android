@@ -182,7 +182,7 @@ class AddReconstructionActivity : AppCompatActivity() {
         card.addView(cardLayout)
         content.addView(card)
 
-        // --- Карточка 'Маска стен' (всегда видима, кнопка неактивна до загрузки) ---
+        // --- Карточка 'Маска стен' (только кнопка и прогресс) ---
         maskCard = MaterialCardView(this)
         val maskCardParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
@@ -212,7 +212,41 @@ class AddReconstructionActivity : AppCompatActivity() {
         )
         btnMaskParams.topMargin = 24
         btnMask.layoutParams = btnMaskParams
-        maskLayout.addView(btnMask)
+        // Создаём FrameLayout для кнопки и прогресса
+        val btnMaskContainer = FrameLayout(this)
+        btnMaskContainer.layoutParams = btnMaskParams
+        btnMaskContainer.addView(btnMask)
+        // Прогресс-бар для маски внутри кнопки
+        maskProgress = ProgressBar(this, null, android.R.attr.progressBarStyleSmall)
+        val maskProgressParams = FrameLayout.LayoutParams(64, 64)
+        maskProgressParams.gravity = android.view.Gravity.CENTER
+        maskProgress.layoutParams = maskProgressParams
+        maskProgress.visibility = View.GONE
+        btnMaskContainer.addView(maskProgress)
+        maskLayout.addView(btnMaskContainer)
+        maskCard.addView(maskLayout)
+        maskCard.visibility = View.VISIBLE
+        content.addView(maskCard)
+
+        // --- Новая карточка 'Редактирование маски' ---
+        val editMaskCard = MaterialCardView(this)
+        val editMaskCardParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        editMaskCardParams.bottomMargin = 32
+        editMaskCard.layoutParams = editMaskCardParams
+        editMaskCard.radius = 24f
+        editMaskCard.cardElevation = 8f
+        editMaskCard.setContentPadding(32, 32, 32, 32)
+        val editMaskLayout = LinearLayout(this)
+        editMaskLayout.orientation = LinearLayout.VERTICAL
+        val editMaskTitle = TextView(this)
+        editMaskTitle.text = "Редактирование маски"
+        editMaskTitle.textSize = 20f
+        editMaskTitle.setTextColor(0xFF000000.toInt())
+        editMaskTitle.setTypeface(null, android.graphics.Typeface.BOLD)
+        editMaskLayout.addView(editMaskTitle)
         // Серый блок под маску с соотношением 16:9
         val displayMetrics = resources.displayMetrics
         val blockWidth = displayMetrics.widthPixels - 64 // padding
@@ -244,13 +278,7 @@ class AddReconstructionActivity : AppCompatActivity() {
         maskPhotoText.layoutParams = maskPhotoTextParams
         maskPhotoBlock.addView(maskPhotoText)
         maskPhotoText.visibility = View.VISIBLE
-        // Прогресс-бар для маски
-        maskProgress = ProgressBar(this, null, android.R.attr.progressBarStyleLarge)
-        val maskProgressParams = FrameLayout.LayoutParams(128, 128)
-        maskProgressParams.gravity = android.view.Gravity.CENTER
-        maskProgress.layoutParams = maskProgressParams
-        maskProgress.visibility = View.GONE
-        maskPhotoBlock.addView(maskProgress)
+        editMaskLayout.addView(maskPhotoBlock)
         // Кнопка 'Редактирование маски'
         val btnEditMask = Button(this)
         btnEditMask.text = "Редактирование маски"
@@ -263,11 +291,9 @@ class AddReconstructionActivity : AppCompatActivity() {
         btnEditMaskParams.topMargin = 16
         btnEditMask.layoutParams = btnEditMaskParams
         btnEditMask.isEnabled = false
-        maskLayout.addView(btnEditMask)
-        maskLayout.addView(maskPhotoBlock)
-        maskCard.addView(maskLayout)
-        maskCard.visibility = View.VISIBLE
-        content.addView(maskCard)
+        editMaskLayout.addView(btnEditMask)
+        editMaskCard.addView(editMaskLayout)
+        content.addView(editMaskCard)
 
         setContentView(layout)
         setSupportActionBar(toolbar)
@@ -303,6 +329,7 @@ class AddReconstructionActivity : AppCompatActivity() {
             }
             btnMask.isEnabled = false
             maskProgress.visibility = View.VISIBLE
+            btnMask.text = ""
             CoroutineScope(Dispatchers.Main).launch {
                 try {
                     val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
@@ -328,14 +355,19 @@ class AddReconstructionActivity : AppCompatActivity() {
                     Toast.makeText(this@AddReconstructionActivity, "Ошибка расчёта маски: ${e.message}", Toast.LENGTH_LONG).show()
                 } finally {
                     maskProgress.visibility = View.GONE
+                    btnMask.text = "Просчитать маску"
                     btnMask.isEnabled = true
                 }
             }
         }
         btnEditMask.setOnClickListener {
-            if (!maskUrl.isNullOrEmpty()) {
+            if (!maskUrl.isNullOrEmpty() && !uploadedPhotoId.isNullOrEmpty()) {
                 val intent = Intent(this, EditMaskActivity::class.java)
                 intent.putExtra("mask_url", maskUrl)
+                val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                val baseUrl = prefs.getString("server_url", "") ?: ""
+                val planUrl = if (!uploadedPhotoId.isNullOrEmpty()) "$baseUrl/api/v1/upload/plan-photo/${uploadedPhotoId}/file/" else null
+                intent.putExtra("plan_url", planUrl)
                 startActivity(intent)
             } else {
                 Toast.makeText(this, "Сначала просчитайте маску", Toast.LENGTH_SHORT).show()
