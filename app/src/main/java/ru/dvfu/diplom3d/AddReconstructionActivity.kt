@@ -389,6 +389,38 @@ class AddReconstructionActivity : AppCompatActivity() {
                     .show(supportFragmentManager, "fullscreen_image")
             }
         }
+        // Открытие маски на весь экран
+        maskImageView.setOnClickListener {
+            val maskPath = savedMaskPath ?: (btnEditMask.getTag() as? String)
+            if (!maskPath.isNullOrEmpty()) {
+                FullScreenImageDialogFragment.newInstance(Uri.fromFile(File(maskPath)).toString())
+                    .show(supportFragmentManager, "fullscreen_mask")
+            } else if (!maskUrl.isNullOrEmpty()) {
+                FullScreenImageDialogFragment.newInstance(maskUrl!!)
+                    .show(supportFragmentManager, "fullscreen_mask")
+            }
+        }
+        // Открытие результата Хафа на весь экран
+        houghImageView.setOnClickListener {
+            val houghPath = houghImageView.getTag(R.id.hough_url_tag) as? String
+            Log.d("HoughImageView", "onClick, tag: $houghPath")
+            Toast.makeText(this, "onClick: $houghPath", Toast.LENGTH_SHORT).show()
+            if (!houghPath.isNullOrEmpty()) {
+                val file = File(houghPath)
+                if (file.exists()) {
+                    Log.d("HoughImageView", "File exists: ${file.absolutePath}")
+                    Toast.makeText(this, "Открываю: ${file.absolutePath}", Toast.LENGTH_SHORT).show()
+                    val uri = Uri.fromFile(file).toString()
+                    FullScreenImageDialogFragment.newInstance(uri)
+                        .show(supportFragmentManager, "fullscreen_hough")
+                } else {
+                    Log.e("HoughImageView", "File does not exist: $houghPath")
+                    Toast.makeText(this, "Файл не найден: $houghPath", Toast.LENGTH_LONG).show()
+                }
+            } else {
+                Toast.makeText(this, "Нет пути к файлу/картинке", Toast.LENGTH_SHORT).show()
+            }
+        }
         btnMask.setOnClickListener {
             val fileId = uploadedPhotoId
             if (fileId.isNullOrEmpty()) {
@@ -413,14 +445,19 @@ class AddReconstructionActivity : AppCompatActivity() {
                                 .load(maskUrl)
                                 .into(object : com.bumptech.glide.request.target.CustomTarget<Bitmap>() {
                                     override fun onResourceReady(resource: Bitmap, transition: com.bumptech.glide.request.transition.Transition<in Bitmap>?) {
-                                        val maskFile = File(cacheDir, "mask_edit_${System.currentTimeMillis()}.jpg")
-                                        if (saveBitmapToFile(resource, maskFile)) {
-                                            btnEditMask.setTag(maskFile.absolutePath)
+                                        if (resource != null) {
+                                            val maskFile = File(cacheDir, "mask_edit_${System.currentTimeMillis()}.jpg")
+                                            if (saveBitmapToFile(resource, maskFile)) {
+                                                btnEditMask.setTag(maskFile.absolutePath)
+                                            }
+                                            maskImageView.setImageBitmap(resource)
+                                            maskPhotoText.visibility = View.GONE
+                                            btnEditMask.isEnabled = true
+                                            btnCalculateHoughLines.isEnabled = true
+                                        } else {
+                                            Log.e("HoughImageView", "Bitmap resource is null!")
+                                            Toast.makeText(this@AddReconstructionActivity, "Ошибка: bitmap == null", Toast.LENGTH_LONG).show()
                                         }
-                                        maskImageView.setImageBitmap(resource)
-                                        maskPhotoText.visibility = View.GONE
-                                        btnEditMask.isEnabled = true
-                                        btnCalculateHoughLines.isEnabled = true
                                     }
                                     override fun onLoadCleared(placeholder: android.graphics.drawable.Drawable?) {}
                                 })
@@ -493,6 +530,7 @@ class AddReconstructionActivity : AppCompatActivity() {
                                    Glide.with(this@AddReconstructionActivity)
                                        .load(houghUrl)
                                        .into(houghImageView)
+                                   houghImageView.setTag(R.id.hough_url_tag, houghUrl)
                                    houghPhotoText.visibility = View.GONE
                                } else {
                                    houghPhotoText.visibility = View.VISIBLE
