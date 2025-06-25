@@ -16,7 +16,8 @@ class EditMaskActivity : AppCompatActivity() {
         val planPath = intent.getStringExtra("plan_path")
         val maskPath = intent.getStringExtra("mask_path")
         val planBitmap = BitmapFactory.decodeFile(planPath)
-        val maskBitmap = BitmapFactory.decodeFile(maskPath)
+        val maskBitmapOrig = BitmapFactory.decodeFile(maskPath)
+        val maskBitmap = maskBitmapOrig.copy(Bitmap.Config.ARGB_8888, true)
         val layout = FrameLayout(this)
         val toolbar = Toolbar(this)
         toolbar.title = "Редактирование маски"
@@ -52,6 +53,17 @@ class MaskEditView(context: Context, val planBitmap: Bitmap, val maskBitmap: Bit
     private var lastTranslateX = 0f
     private var lastTranslateY = 0f
     private var isPanning = false
+    private var isDrawing = false
+    private var lastDrawX = 0f
+    private var lastDrawY = 0f
+    private val drawPaint = Paint().apply {
+        color = Color.BLACK // Можно поменять на белый, если нужно
+        style = Paint.Style.STROKE
+        strokeWidth = 32f // Толщина кисти в px
+        strokeCap = Paint.Cap.ROUND
+        isAntiAlias = true
+    }
+    private val maskCanvas = Canvas(maskBitmap)
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
@@ -119,6 +131,31 @@ class MaskEditView(context: Context, val planBitmap: Bitmap, val maskBitmap: Bit
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        // Рисование одним пальцем
+        if (event.pointerCount == 1) {
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    isDrawing = true
+                    val (x, y) = screenToMask(event.x, event.y)
+                    lastDrawX = x
+                    lastDrawY = y
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    if (isDrawing) {
+                        val (x, y) = screenToMask(event.x, event.y)
+                        maskCanvas.drawLine(lastDrawX, lastDrawY, x, y, drawPaint)
+                        lastDrawX = x
+                        lastDrawY = y
+                        invalidate()
+                    }
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    isDrawing = false
+                }
+            }
+            return true
+        }
+        // Зум и пан двумя пальцами
         scaleDetector.onTouchEvent(event)
         when (event.action and MotionEvent.ACTION_MASK) {
             MotionEvent.ACTION_DOWN -> {
@@ -169,4 +206,15 @@ class MaskEditView(context: Context, val planBitmap: Bitmap, val maskBitmap: Bit
             return true
         }
     })
+
+    // Переводит координаты экрана в координаты маски
+    private fun screenToMask(screenX: Float, screenY: Float): Pair<Float, Float> {
+        val bmpW = maskBitmap.width.toFloat()
+        val bmpH = maskBitmap.height.toFloat()
+        val scaleX = scale
+        val scaleY = scale
+        val x = (screenX - translateX) / scaleX
+        val y = (screenY - translateY) / scaleY
+        return Pair(x.coerceIn(0f, bmpW - 1), y.coerceIn(0f, bmpH - 1))
+    }
 } 
