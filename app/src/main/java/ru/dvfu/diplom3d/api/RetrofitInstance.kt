@@ -25,6 +25,7 @@ object RetrofitInstance {
         "POST" to Regex("/api/v1/upload/user-mask/"),
         "POST" to Regex("/api/v1/reconstruction/houghs"),
         "POST" to Regex("/api/v1/reconstruction/reconstructions"),
+        "PUT" to Regex("/api/v1/reconstruction/reconstructions/\\d+/save"),
     )
 
     fun getApiService(baseUrl: String, context: Context? = null): ApiService {

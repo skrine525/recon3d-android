@@ -525,6 +525,7 @@ class AddReconstructionActivity : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 btnSave.isEnabled = !nameEdit.text.isNullOrBlank() && meshId != null
+                btnSave.setBackgroundResource(if (btnSave.isEnabled) R.drawable.green_button else grayButtonRes)
             }
             override fun afterTextChanged(s: android.text.Editable?) {}
         })
@@ -557,6 +558,7 @@ class AddReconstructionActivity : AppCompatActivity() {
                             Toast.makeText(this@AddReconstructionActivity, "3D-модель построена!", Toast.LENGTH_SHORT).show()
                             // --- Активируем кнопку 'Сохранить', если поле заполнено ---
                             btnSave.isEnabled = !nameEdit.text.isNullOrBlank()
+                            btnSave.setBackgroundResource(if (btnSave.isEnabled) R.drawable.green_button else grayButtonRes)
                         } else {
                             Toast.makeText(this@AddReconstructionActivity, "Нет id 3D-модели", Toast.LENGTH_LONG).show()
                         }
@@ -582,7 +584,29 @@ class AddReconstructionActivity : AppCompatActivity() {
             } else if (meshId == null) {
                 Toast.makeText(this, "Сначала постройте 3D-модель", Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(this, "Сохранено: $name", Toast.LENGTH_SHORT).show()
+                AlertDialog.Builder(this)
+                    .setTitle("Подтверждение")
+                    .setMessage("Сохранить реконструкцию с именем '$name'?")
+                    .setPositiveButton("Сохранить") { _, _ ->
+                        CoroutineScope(Dispatchers.Main).launch {
+                            try {
+                                val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                                val baseUrl = prefs.getString("server_url", "") ?: ""
+                                val api = ru.dvfu.diplom3d.api.RetrofitInstance.getApiService(baseUrl, this@AddReconstructionActivity)
+                                val response = api.saveReconstruction(meshId!!, ru.dvfu.diplom3d.api.SaveReconstructionRequest(name))
+                                if (response.isSuccessful) {
+                                    Toast.makeText(this@AddReconstructionActivity, "Реконструкция успешно сохранена!", Toast.LENGTH_SHORT).show()
+                                    finish()
+                                } else {
+                                    Toast.makeText(this@AddReconstructionActivity, "Ошибка сохранения: ${response.code()}", Toast.LENGTH_LONG).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(this@AddReconstructionActivity, "Ошибка сохранения: ${e.message}", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
+                    .setNegativeButton("Отмена", null)
+                    .show()
             }
         }
         btnViewMesh.setOnClickListener {

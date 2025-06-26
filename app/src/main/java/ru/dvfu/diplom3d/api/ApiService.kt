@@ -89,6 +89,9 @@ interface ApiService {
     suspend fun calculateMesh(
         @Body body: CalculateMeshRequest
     ): Response<CalculateMeshResponse>
+
+    @PUT("/api/v1/reconstruction/reconstructions/{id}/save")
+    suspend fun saveReconstruction(@Path("id") id: Int, @Body body: SaveReconstructionRequest): Response<CalculateMeshResponse>
 }
 
 // Примеры моделей для login/register
@@ -178,4 +181,6 @@ data class CalculateMeshResponse(
     val created_by: Int,
     val saved_at: String?,
     val url: String
-) 
+)
+
+data class SaveReconstructionRequest(val name: String) 
