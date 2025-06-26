@@ -22,6 +22,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ru.dvfu.diplom3d.api.RetrofitInstance
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.textfield.TextInputLayout
+import com.google.android.material.textfield.TextInputEditText
+import android.text.TextWatcher
 
 class StaffMainMenuActivity : AppCompatActivity() {
     private var usernameView: TextView? = null
@@ -109,6 +112,31 @@ class StaffMainMenuActivity : AppCompatActivity() {
         titleIdent.setTextColor(0xFF000000.toInt())
         titleIdent.setTypeface(null, android.graphics.Typeface.BOLD)
         layoutIdent.addView(titleIdent)
+        // Отступ после тайтла
+        val spaceAfterTitle = View(this)
+        val spaceParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            24 // px, аналогично btnAddParams.topMargin
+        )
+        spaceAfterTitle.layoutParams = spaceParams
+        layoutIdent.addView(spaceAfterTitle)
+        // --- Поисковый инпут ---
+        val searchInputLayout = TextInputLayout(this)
+        val searchEditText = TextInputEditText(this)
+        searchInputLayout.layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        searchInputLayout.hint = "Поиск по названию"
+        searchInputLayout.boxBackgroundMode = 0 // BOX_NONE
+        searchInputLayout.addView(searchEditText)
+        layoutIdent.addView(searchInputLayout)
+        // --- Прогрессбар и контейнер для кнопок ---
+        val reconProgress = android.widget.ProgressBar(this)
+        layoutIdent.addView(reconProgress)
+        val reconButtonsLayout = LinearLayout(this)
+        reconButtonsLayout.orientation = LinearLayout.VERTICAL
+        layoutIdent.addView(reconButtonsLayout)
         cardIdent.addView(layoutIdent)
         cardsLayout.addView(cardIdent)
         content.addView(cardsLayout)
@@ -205,6 +233,74 @@ class StaffMainMenuActivity : AppCompatActivity() {
             val intent = Intent(this, AddReconstructionActivity::class.java)
             startActivity(intent)
         }
+
+        // Загрузка реконструкций
+        var allReconstructions: List<ru.dvfu.diplom3d.api.ReconstructionListItem> = emptyList()
+        fun showFilteredReconstructions(query: String) {
+            reconButtonsLayout.removeAllViews()
+            val filtered = if (query.isBlank()) allReconstructions else allReconstructions.filter { it.name.contains(query, ignoreCase = true) }
+            for (item in filtered) {
+                val btn = android.widget.Button(this@StaffMainMenuActivity)
+                btn.text = item.name
+                btn.setBackgroundResource(R.drawable.blue_button)
+                btn.setTextColor(0xFFFFFFFF.toInt())
+                val params = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                params.bottomMargin = 16
+                btn.layoutParams = params
+                btn.setOnClickListener {
+                    val intent = Intent(this@StaffMainMenuActivity, ReconstructionDetailActivity::class.java)
+                    intent.putExtra("reconstruction_id", item.id)
+                    startActivity(intent)
+                }
+                reconButtonsLayout.addView(btn)
+            }
+            if (filtered.isEmpty()) {
+                val tv = TextView(this@StaffMainMenuActivity)
+                tv.text = "Ничего не найдено"
+                tv.setTextColor(0xFF888888.toInt())
+                reconButtonsLayout.addView(tv)
+            }
+        }
+        fun loadReconstructions() {
+            reconProgress.visibility = View.VISIBLE
+            reconButtonsLayout.removeAllViews()
+            val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+            val baseUrl = prefs.getString("server_url", "") ?: ""
+            val api = RetrofitInstance.getApiService(baseUrl, this)
+            CoroutineScope(Dispatchers.Main).launch {
+                try {
+                    val response = api.getReconstructions()
+                    if (response.isSuccessful) {
+                        allReconstructions = response.body() ?: emptyList()
+                        showFilteredReconstructions(searchEditText.text?.toString() ?: "")
+                    } else {
+                        val tv = TextView(this@StaffMainMenuActivity)
+                        tv.text = "Ошибка загрузки: ${response.code()}"
+                        tv.setTextColor(0xFFFF0000.toInt())
+                        reconButtonsLayout.addView(tv)
+                    }
+                } catch (e: Exception) {
+                    val tv = TextView(this@StaffMainMenuActivity)
+                    tv.text = "Ошибка: ${e.localizedMessage}"
+                    tv.setTextColor(0xFFFF0000.toInt())
+                    reconButtonsLayout.addView(tv)
+                } finally {
+                    reconProgress.visibility = View.GONE
+                }
+            }
+        }
+        // Фильтрация по изменению текста
+        searchEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                showFilteredReconstructions(s?.toString() ?: "")
+            }
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        })
+        loadReconstructions()
     }
 
     override fun onResume() {

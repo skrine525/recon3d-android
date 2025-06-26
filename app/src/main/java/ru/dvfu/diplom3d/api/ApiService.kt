@@ -12,6 +12,7 @@ import okhttp3.MultipartBody
 import retrofit2.http.Multipart
 import retrofit2.http.Part
 import retrofit2.http.Headers
+import retrofit2.http.Query
 
 interface ApiService {
     @GET("/api/v1/common/info")
@@ -92,6 +93,11 @@ interface ApiService {
 
     @PUT("/api/v1/reconstruction/reconstructions/{id}/save")
     suspend fun saveReconstruction(@Path("id") id: Int, @Body body: SaveReconstructionRequest): Response<CalculateMeshResponse>
+
+    @GET("/api/v1/reconstruction/reconstructions")
+    suspend fun getReconstructions(
+        @Query("is_saved") isSaved: Int = 1
+    ): Response<List<ReconstructionListItem>>
 }
 
 // Примеры моделей для login/register
@@ -183,4 +189,9 @@ data class CalculateMeshResponse(
     val url: String
 )
 
-data class SaveReconstructionRequest(val name: String) 
+data class SaveReconstructionRequest(val name: String)
+
+data class ReconstructionListItem(
+    val id: Int,
+    val name: String
+) 
