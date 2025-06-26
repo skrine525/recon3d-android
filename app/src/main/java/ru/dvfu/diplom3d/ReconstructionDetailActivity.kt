@@ -165,6 +165,35 @@ class ReconstructionDetailActivity : AppCompatActivity() {
 
         card.addView(cardLayout)
         layout.addView(card)
+
+        // Карточка 'Редактирование' только для staff/superuser
+        val currentUser = ru.dvfu.diplom3d.AuthLoadingActivity.userMe
+        if (currentUser?.is_staff == true || currentUser?.is_superuser == true) {
+            val editCard = com.google.android.material.card.MaterialCardView(this)
+            val editCardParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            editCardParams.topMargin = 32
+            editCard.layoutParams = editCardParams
+            editCard.radius = 24f
+            editCard.cardElevation = 8f
+            editCard.setContentPadding(32, 32, 32, 32)
+            val editLayout = LinearLayout(this)
+            editLayout.orientation = LinearLayout.VERTICAL
+            val editTitle = TextView(this)
+            editTitle.text = "Редактирование"
+            editTitle.textSize = 20f
+            editTitle.setTypeface(null, android.graphics.Typeface.BOLD)
+            editTitle.setTextColor(0xFF000000.toInt())
+            val editTitleParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            editTitleParams.bottomMargin = 24
+            editLayout.addView(editTitle, editTitleParams)
+            // Здесь можно добавить поля для редактирования
+            editCard.addView(editLayout)
+            layout.addView(editCard)
+        }
+
         setContentView(layout)
 
         // Скрываем содержимое карточки до загрузки
