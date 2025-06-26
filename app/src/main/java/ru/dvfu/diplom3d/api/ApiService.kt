@@ -14,7 +14,7 @@ import retrofit2.http.Part
 import retrofit2.http.Headers
 
 interface ApiService {
-    @GET("/api/v1/common/meta")
+    @GET("/api/v1/common/info")
     suspend fun checkServer(): Response<Void>
 
     @POST("/api/v1/token/login/")

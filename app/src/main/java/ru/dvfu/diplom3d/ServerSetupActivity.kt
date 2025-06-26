@@ -129,7 +129,7 @@ class ServerSetupActivity : AppCompatActivity() {
     }
 
     private suspend fun checkServer(url: String): Boolean {
-        Log.d("ServerSetup", "Пробуем подключиться к серверу: $url/api/v1/mobile/meta (Retrofit)")
+        Log.d("ServerSetup", "Пробуем подключиться к серверу: $url/api/v1/mobile/info (Retrofit)")
         return try {
             val api = RetrofitInstance.getApiService(url, this@ServerSetupActivity)
             val response = api.checkServer()
