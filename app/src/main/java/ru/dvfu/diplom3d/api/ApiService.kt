@@ -13,6 +13,8 @@ import retrofit2.http.Multipart
 import retrofit2.http.Part
 import retrofit2.http.Headers
 import retrofit2.http.Query
+import retrofit2.http.DELETE
+import retrofit2.http.PATCH
 
 interface ApiService {
     @GET("/api/v1/common/info")
@@ -101,6 +103,12 @@ interface ApiService {
 
     @GET("/api/v1/reconstruction/reconstructions/{id}")
     suspend fun getReconstructionById(@Path("id") id: Int): Response<CalculateMeshResponse>
+
+    @DELETE("/api/v1/reconstruction/reconstructions/{id}")
+    suspend fun deleteReconstruction(@Path("id") id: Int): Response<Void>
+
+    @PATCH("/api/v1/reconstruction/reconstructions/{id}")
+    suspend fun patchReconstruction(@Path("id") id: Int, @Body body: PatchReconstructionRequest): Response<Void>
 }
 
 // Примеры моделей для login/register
@@ -197,4 +205,6 @@ data class SaveReconstructionRequest(val name: String)
 data class ReconstructionListItem(
     val id: Int,
     val name: String
-) 
+)
+
+data class PatchReconstructionRequest(val name: String) 
