@@ -744,7 +744,6 @@ class AddReconstructionActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            Toast.makeText(this, "Выполняется загрузка маски...", Toast.LENGTH_SHORT).show()
             btnCalculateHoughLines.isEnabled = false
             btnCalculateHoughLines.setBackgroundResource(grayButtonRes)
             houghLinesProgress.visibility = View.VISIBLE
@@ -771,7 +770,6 @@ class AddReconstructionActivity : AppCompatActivity() {
                     if (response.isSuccessful) {
                        val houghResp = response.body()
                        uploadedHoughLinesId = houghResp?.id
-                       Toast.makeText(this@AddReconstructionActivity, "Маска для расчёта линий успешно загружена!", Toast.LENGTH_SHORT).show()
                        val planId = uploadedPhotoId
                        val maskId = houghResp?.id
                        if (!planId.isNullOrEmpty() && !maskId.isNullOrEmpty()) {
