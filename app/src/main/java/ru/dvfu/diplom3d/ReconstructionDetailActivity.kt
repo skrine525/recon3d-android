@@ -15,6 +15,7 @@ import ru.dvfu.diplom3d.api.UserResponse
 import android.widget.FrameLayout
 
 class ReconstructionDetailActivity : AppCompatActivity() {
+    private lateinit var editFullScreenLoading: FrameLayout
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val layout = LinearLayout(this)
@@ -189,12 +190,129 @@ class ReconstructionDetailActivity : AppCompatActivity() {
             val editTitleParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
             editTitleParams.bottomMargin = 24
             editLayout.addView(editTitle, editTitleParams)
-            // Здесь можно добавить поля для редактирования
+
+            // Поле для редактирования названия
+            val nameInputLayout = com.google.android.material.textfield.TextInputLayout(this)
+            nameInputLayout.hint = "Название"
+            nameInputLayout.boxBackgroundMode = 0
+            val nameEdit = com.google.android.material.textfield.TextInputEditText(this)
+            nameInputLayout.addView(nameEdit)
+            editLayout.addView(nameInputLayout)
+
+            // Кнопка Сохранить
+            val btnSave = android.widget.Button(this)
+            btnSave.text = "Сохранить"
+            btnSave.setBackgroundResource(R.drawable.green_button)
+            btnSave.setTextColor(0xFFFFFFFF.toInt())
+            val btnSaveParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            btnSaveParams.topMargin = 16
+            btnSave.layoutParams = btnSaveParams
+            editLayout.addView(btnSave)
+
+            // Кнопка Удалить
+            val btnDelete = android.widget.Button(this)
+            btnDelete.text = "Удалить"
+            btnDelete.setBackgroundResource(R.drawable.red_button)
+            btnDelete.setTextColor(0xFFFFFFFF.toInt())
+            val btnDeleteParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            btnDeleteParams.topMargin = 16
+            btnDelete.layoutParams = btnDeleteParams
+            editLayout.addView(btnDelete)
+
+            // Логика: подставить текущее название
+            nameEdit.setText(nameValue.text)
+
+            // --- Обработчики кнопок ---
+            btnSave.setOnClickListener {
+                val newName = nameEdit.text?.toString()?.trim()
+                if (newName.isNullOrEmpty()) {
+                    android.widget.Toast.makeText(this, "Введите название", android.widget.Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                btnSave.isEnabled = false
+                editFullScreenLoading.visibility = View.VISIBLE
+                val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                val baseUrl = prefs.getString("server_url", "") ?: ""
+                val api = ru.dvfu.diplom3d.api.RetrofitInstance.getApiService(baseUrl, this)
+                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+                    try {
+                        val resp = api.patchReconstruction(id, ru.dvfu.diplom3d.api.PatchReconstructionRequest(newName))
+                        if (resp.isSuccessful) {
+                            android.widget.Toast.makeText(this@ReconstructionDetailActivity, "Название обновлено", android.widget.Toast.LENGTH_SHORT).show()
+                            // Обновить инфу в карточке
+                            nameValue.text = newName
+                        } else {
+                            android.widget.Toast.makeText(this@ReconstructionDetailActivity, "Ошибка: ${resp.code()}", android.widget.Toast.LENGTH_LONG).show()
+                        }
+                    } catch (e: Exception) {
+                        android.widget.Toast.makeText(this@ReconstructionDetailActivity, "Ошибка: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                    } finally {
+                        btnSave.isEnabled = true
+                        editFullScreenLoading.visibility = View.GONE
+                    }
+                }
+            }
+
+            btnDelete.setOnClickListener {
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Подтверждение")
+                    .setMessage("Удалить реконструкцию?")
+                    .setPositiveButton("Удалить") { _, _ ->
+                        btnDelete.isEnabled = false
+                        editFullScreenLoading.visibility = View.VISIBLE
+                        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                        val baseUrl = prefs.getString("server_url", "") ?: ""
+                        val api = ru.dvfu.diplom3d.api.RetrofitInstance.getApiService(baseUrl, this)
+                        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+                            try {
+                                val resp = api.deleteReconstruction(id)
+                                if (resp.isSuccessful) {
+                                    android.widget.Toast.makeText(this@ReconstructionDetailActivity, "Удалено", android.widget.Toast.LENGTH_SHORT).show()
+                                    finish()
+                                } else {
+                                    android.widget.Toast.makeText(this@ReconstructionDetailActivity, "Ошибка: ${resp.code()}", android.widget.Toast.LENGTH_LONG).show()
+                                }
+                            } catch (e: Exception) {
+                                android.widget.Toast.makeText(this@ReconstructionDetailActivity, "Ошибка: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                            } finally {
+                                btnDelete.isEnabled = true
+                                editFullScreenLoading.visibility = View.GONE
+                            }
+                        }
+                    }
+                    .setNegativeButton("Отмена", null)
+                    .show()
+            }
+
             editCard.addView(editLayout)
             layout.addView(editCard)
         }
 
+        // --- Полноэкранный ProgressBar для операций редактирования (как в AuthActivity) ---
+        editFullScreenLoading = FrameLayout(this)
+        editFullScreenLoading.setBackgroundColor(0x80000000.toInt())
+        editFullScreenLoading.visibility = View.GONE
+        editFullScreenLoading.isClickable = true
+        editFullScreenLoading.isFocusable = true
+        val editProgressBar = android.widget.ProgressBar(this)
+        val editPbParams = FrameLayout.LayoutParams(128, 128)
+        editPbParams.gravity = android.view.Gravity.CENTER
+        editProgressBar.layoutParams = editPbParams
+        editFullScreenLoading.addView(editProgressBar)
+        val editOverlayParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        )
+        editFullScreenLoading.layoutParams = editOverlayParams
+
         setContentView(layout)
+        (this.findViewById<android.view.ViewGroup>(android.R.id.content)).addView(editFullScreenLoading)
 
         // Скрываем содержимое карточки до загрузки
         infoContentLayout.visibility = View.INVISIBLE
