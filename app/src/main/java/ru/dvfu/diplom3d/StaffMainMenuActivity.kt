@@ -25,6 +25,7 @@ import com.google.android.material.card.MaterialCardView
 import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.textfield.TextInputEditText
 import android.text.TextWatcher
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
 class StaffMainMenuActivity : AppCompatActivity() {
     private var usernameView: TextView? = null
@@ -94,6 +95,7 @@ class StaffMainMenuActivity : AppCompatActivity() {
         card3d.addView(layout3d)
         cardsLayout.addView(card3d)
         // --- Карточка Идентификация пользователя ---
+        val swipeRefresh = androidx.swiperefreshlayout.widget.SwipeRefreshLayout(this)
         val cardIdent = MaterialCardView(this)
         val cardIdentParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
@@ -121,8 +123,8 @@ class StaffMainMenuActivity : AppCompatActivity() {
         spaceAfterTitle.layoutParams = spaceParams
         layoutIdent.addView(spaceAfterTitle)
         // --- Поисковый инпут ---
-        val searchInputLayout = TextInputLayout(this)
-        val searchEditText = TextInputEditText(this)
+        val searchInputLayout = com.google.android.material.textfield.TextInputLayout(this)
+        val searchEditText = com.google.android.material.textfield.TextInputEditText(this)
         searchInputLayout.layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
@@ -138,7 +140,8 @@ class StaffMainMenuActivity : AppCompatActivity() {
         reconButtonsLayout.orientation = LinearLayout.VERTICAL
         layoutIdent.addView(reconButtonsLayout)
         cardIdent.addView(layoutIdent)
-        cardsLayout.addView(cardIdent)
+        swipeRefresh.addView(cardIdent)
+        cardsLayout.addView(swipeRefresh)
         content.addView(cardsLayout)
         drawerLayout.addView(content)
 
@@ -289,6 +292,7 @@ class StaffMainMenuActivity : AppCompatActivity() {
                     reconButtonsLayout.addView(tv)
                 } finally {
                     reconProgress.visibility = View.GONE
+                    swipeRefresh.isRefreshing = false
                 }
             }
         }
@@ -300,6 +304,9 @@ class StaffMainMenuActivity : AppCompatActivity() {
             }
             override fun afterTextChanged(s: android.text.Editable?) {}
         })
+        swipeRefresh.setOnRefreshListener {
+            loadReconstructions()
+        }
         loadReconstructions()
     }
 
