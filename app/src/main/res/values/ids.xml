@@ -1,0 +1,4 @@
+<resources>
+    <item name="hough_url_tag" type="id"/>
+    <item name="mesh_obj_path_tag" type="id"/>
+</resources> 
