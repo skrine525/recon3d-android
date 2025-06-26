@@ -138,7 +138,6 @@ data class UpdateFlagRequest(val value: Boolean)
 
 data class UploadPhotoResponse(
     val id: String,
-    val file_path: String,
     val url: String,
     val file_type: Int,
     val source_type: Int,
@@ -152,7 +151,6 @@ data class CalculateMaskResponse(
     val source_upload_file_id: String,
     val created_at: String,
     val created_by: Int,
-    val file_path: String,
     val url: String
 )
 
@@ -166,7 +164,6 @@ data class CalculateHoughResponse(
     val user_mask_upload_file_id: String,
     val created_at: String,
     val created_by: Int,
-    val file_path: String,
     val url: String
 )
 
@@ -177,7 +174,6 @@ data class CalculateMeshRequest(
 data class CalculateMeshResponse(
     val id: Int,
     val name: String,
-    val mesh_file_path: String,
     val created_at: String,
     val created_by: Int,
     val saved_at: String?,
