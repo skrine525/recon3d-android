@@ -21,10 +21,10 @@ object RetrofitInstance {
         "PUT" to Regex("/api/v1/common/users/\\d+/change-is-staff/"),
         "PUT" to Regex("/api/v1/common/users/\\d+/change-is-superuser/"),
         "POST" to Regex("/api/v1/upload/plan-photo/"),
-        "POST" to Regex("/api/v1/reconstruction/calculate-initial-mask"),
+        "POST" to Regex("/api/v1/reconstruction/initial-masks"),
         "POST" to Regex("/api/v1/upload/user-mask/"),
-        "POST" to Regex("/api/v1/reconstruction/calculate-hough"),
-        "POST" to Regex("/api/v1/reconstruction/calculate-mesh"),
+        "POST" to Regex("/api/v1/reconstruction/houghs"),
+        "POST" to Regex("/api/v1/reconstruction/reconstructions"),
     )
 
     fun getApiService(baseUrl: String, context: Context? = null): ApiService {

@@ -66,7 +66,7 @@ interface ApiService {
         @Part file: MultipartBody.Part
     ): Response<UploadPhotoResponse>
 
-    @POST("/api/v1/reconstruction/calculate-initial-mask")
+    @POST("/api/v1/reconstruction/initial-masks")
     @Headers("Content-Type: application/json")
     suspend fun calculateInitialMask(
         @Body body: CalculateMaskRequest
@@ -78,13 +78,13 @@ interface ApiService {
         @Part file: MultipartBody.Part
     ): Response<UploadPhotoResponse>
 
-    @POST("/api/v1/reconstruction/calculate-hough")
+    @POST("/api/v1/reconstruction/houghs")
     @Headers("Content-Type: application/json")
     suspend fun calculateHough(
         @Body body: CalculateHoughRequest
     ): Response<CalculateHoughResponse>
 
-    @POST("/api/v1/reconstruction/calculate-mesh")
+    @POST("/api/v1/reconstruction/reconstructions")
     @Headers("Content-Type: application/json")
     suspend fun calculateMesh(
         @Body body: CalculateMeshRequest
