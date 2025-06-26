@@ -50,6 +50,8 @@ import java.net.URL
 import android.util.Log
 import java.io.FileOutputStream
 import androidx.appcompat.app.AlertDialog
+import com.google.android.material.textfield.TextInputLayout
+import com.google.android.material.textfield.TextInputEditText
 
 class AddReconstructionActivity : AppCompatActivity() {
     private var photoUri: Uri? = null
@@ -413,6 +415,114 @@ class AddReconstructionActivity : AppCompatActivity() {
         meshCard.addView(meshLayout)
         content.addView(meshCard)
 
+        // --- Карточка 'Сохранение реконструкции' ---
+        val saveCard = MaterialCardView(this)
+        val saveCardParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        saveCardParams.bottomMargin = 32
+        saveCard.layoutParams = saveCardParams
+        saveCard.radius = 24f
+        saveCard.cardElevation = 8f
+        saveCard.setContentPadding(32, 32, 32, 32)
+        val saveLayout = LinearLayout(this)
+        saveLayout.orientation = LinearLayout.VERTICAL
+        val saveTitle = TextView(this)
+        saveTitle.text = "Сохранение реконструкции"
+        saveTitle.textSize = 20f
+        saveTitle.setTextColor(0xFF000000.toInt())
+        saveTitle.setTypeface(null, android.graphics.Typeface.BOLD)
+        saveLayout.addView(saveTitle)
+        // Поле для ввода названия (как в AuthActivity)
+        val nameInputLayout = TextInputLayout(this)
+        nameInputLayout.hint = "Название реконструкции"
+        nameInputLayout.boxBackgroundMode = 0
+        val nameEdit = TextInputEditText(this)
+        nameInputLayout.addView(nameEdit)
+        saveLayout.addView(nameInputLayout)
+        // Кнопка 'Сохранить'
+        val btnSave = Button(this)
+        btnSave.text = "Сохранить"
+        btnSave.setBackgroundResource(R.drawable.green_button)
+        btnSave.setTextColor(0xFFFFFFFF.toInt())
+        val btnSaveParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        btnSaveParams.topMargin = 16
+        btnSave.layoutParams = btnSaveParams
+        btnSave.isEnabled = false // станет активной после построения модели и если поле не пустое
+        saveLayout.addView(btnSave)
+        saveCard.addView(saveLayout)
+        content.addView(saveCard)
+        // Логика активации кнопки
+        nameEdit.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                btnSave.isEnabled = !nameEdit.text.isNullOrBlank() && meshId != null
+            }
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        })
+        // Также активируем кнопку, если meshId появилось после построения
+        // (например, если поле уже заполнено)
+        btnBuildMesh.setOnClickListener {
+            val planId = uploadedPhotoId
+            val maskId = uploadedHoughLinesId // используем id маски, как и для calculate-hough
+            if (planId.isNullOrEmpty() || maskId.isNullOrEmpty()) {
+                Toast.makeText(this, "Сначала просчитайте линии Хафа", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            btnBuildMesh.isEnabled = false
+            CoroutineScope(Dispatchers.Main).launch {
+                try {
+                    val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                    val baseUrl = prefs.getString("server_url", "") ?: ""
+                    val api = RetrofitInstance.getApiService(baseUrl, this@AddReconstructionActivity)
+                    val response = api.calculateMesh(ru.dvfu.diplom3d.api.CalculateMeshRequest(planId, maskId))
+                    if (response.isSuccessful) {
+                        val meshResp = response.body()
+                        meshUrl = meshResp?.url
+                        meshId = meshResp?.id // сохраняем id для кнопки 'Просмотреть'
+                        if (meshId != null) {
+                            btnViewMesh.isEnabled = true
+                            Toast.makeText(this@AddReconstructionActivity, "3D-модель построена!", Toast.LENGTH_SHORT).show()
+                            // --- Активируем кнопку 'Сохранить', если поле заполнено ---
+                            btnSave.isEnabled = !nameEdit.text.isNullOrBlank()
+                        } else {
+                            Toast.makeText(this@AddReconstructionActivity, "Нет id 3D-модели", Toast.LENGTH_LONG).show()
+                        }
+                    } else {
+                        Toast.makeText(this@AddReconstructionActivity, "Ошибка построения: ${response.code()}", Toast.LENGTH_LONG).show()
+                        btnBuildMesh.isEnabled = true
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(this@AddReconstructionActivity, "Ошибка построения: ${e.message}", Toast.LENGTH_LONG).show()
+                    btnBuildMesh.isEnabled = true
+                }
+            }
+        }
+        btnSave.setOnClickListener {
+            val name = nameEdit.text?.toString()?.trim()
+            if (name.isNullOrEmpty()) {
+                Toast.makeText(this, "Введите название реконструкции", Toast.LENGTH_SHORT).show()
+            } else if (meshId == null) {
+                Toast.makeText(this, "Сначала постройте 3D-модель", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Сохранено: $name", Toast.LENGTH_SHORT).show()
+            }
+        }
+        btnViewMesh.setOnClickListener {
+            val meshIdStr = meshId?.toString()
+            if (!meshIdStr.isNullOrEmpty()) {
+                val intent = Intent(this, ViewMeshActivity::class.java)
+                intent.putExtra("mesh_id", meshIdStr)
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "Нет id 3D-модели", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         setContentView(layout)
         setSupportActionBar(toolbar)
 
@@ -615,50 +725,6 @@ class AddReconstructionActivity : AppCompatActivity() {
                     btnCalculateHoughLines.text = "Просчитать линии"
                     btnCalculateHoughLines.isEnabled = true
                 }
-            }
-        }
-        btnBuildMesh.setOnClickListener {
-            val planId = uploadedPhotoId
-            val maskId = uploadedHoughLinesId // используем id маски, как и для calculate-hough
-            if (planId.isNullOrEmpty() || maskId.isNullOrEmpty()) {
-                Toast.makeText(this, "Сначала просчитайте линии Хафа", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            btnBuildMesh.isEnabled = false
-            CoroutineScope(Dispatchers.Main).launch {
-                try {
-                    val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
-                    val baseUrl = prefs.getString("server_url", "") ?: ""
-                    val api = RetrofitInstance.getApiService(baseUrl, this@AddReconstructionActivity)
-                    val response = api.calculateMesh(ru.dvfu.diplom3d.api.CalculateMeshRequest(planId, maskId))
-                    if (response.isSuccessful) {
-                        val meshResp = response.body()
-                        meshUrl = meshResp?.url
-                        meshId = meshResp?.id // сохраняем id для кнопки 'Просмотреть'
-                        if (meshId != null) {
-                            btnViewMesh.isEnabled = true
-                            Toast.makeText(this@AddReconstructionActivity, "3D-модель построена!", Toast.LENGTH_SHORT).show()
-                        } else {
-                            Toast.makeText(this@AddReconstructionActivity, "Нет id 3D-модели", Toast.LENGTH_LONG).show()
-                        }
-                    } else {
-                        Toast.makeText(this@AddReconstructionActivity, "Ошибка построения: ${response.code()}", Toast.LENGTH_LONG).show()
-                        btnBuildMesh.isEnabled = true
-                    }
-                } catch (e: Exception) {
-                    Toast.makeText(this@AddReconstructionActivity, "Ошибка построения: ${e.message}", Toast.LENGTH_LONG).show()
-                    btnBuildMesh.isEnabled = true
-                }
-            }
-        }
-        btnViewMesh.setOnClickListener {
-            val meshIdStr = meshId?.toString()
-            if (!meshIdStr.isNullOrEmpty()) {
-                val intent = Intent(this, ViewMeshActivity::class.java)
-                intent.putExtra("mesh_id", meshIdStr)
-                startActivity(intent)
-            } else {
-                Toast.makeText(this, "Нет id 3D-модели", Toast.LENGTH_SHORT).show()
             }
         }
     }
