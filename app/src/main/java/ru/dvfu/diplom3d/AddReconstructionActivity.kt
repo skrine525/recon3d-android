@@ -386,7 +386,7 @@ class AddReconstructionActivity : AppCompatActivity() {
         meshTitle.setTextColor(0xFF000000.toInt())
         meshTitle.setTypeface(null, android.graphics.Typeface.BOLD)
         meshLayout.addView(meshTitle)
-        // Кнопка 'Построить'
+        // Кнопка 'Построить' с прогресс-баром
         val btnBuildMesh = Button(this)
         btnBuildMesh.text = "Построить"
         btnBuildMesh.setBackgroundResource(R.drawable.green_button)
@@ -398,7 +398,21 @@ class AddReconstructionActivity : AppCompatActivity() {
         btnBuildMeshParams.topMargin = 16
         btnBuildMesh.layoutParams = btnBuildMeshParams
         btnBuildMesh.isEnabled = false // станет активной после расчёта линий Хафа
-        meshLayout.addView(btnBuildMesh)
+        // Кнопка 'Построить' с прогресс-баром
+        val btnBuildMeshContainer = FrameLayout(this)
+        btnBuildMeshContainer.layoutParams = btnBuildMeshParams
+        btnBuildMesh.layoutParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT
+        )
+        btnBuildMeshContainer.addView(btnBuildMesh)
+        val buildMeshProgress = ProgressBar(this, null, android.R.attr.progressBarStyleSmall)
+        val buildMeshProgressParams = FrameLayout.LayoutParams(64, 64)
+        buildMeshProgressParams.gravity = android.view.Gravity.CENTER
+        buildMeshProgress.layoutParams = buildMeshProgressParams
+        buildMeshProgress.visibility = View.GONE
+        btnBuildMeshContainer.addView(buildMeshProgress)
+        meshLayout.addView(btnBuildMeshContainer)
         // Кнопка 'Просмотреть'
         val btnViewMesh = Button(this)
         btnViewMesh.text = "Просмотреть"
@@ -474,6 +488,8 @@ class AddReconstructionActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             btnBuildMesh.isEnabled = false
+            buildMeshProgress.visibility = View.VISIBLE
+            btnBuildMesh.text = ""
             CoroutineScope(Dispatchers.Main).launch {
                 try {
                     val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
@@ -499,6 +515,9 @@ class AddReconstructionActivity : AppCompatActivity() {
                 } catch (e: Exception) {
                     Toast.makeText(this@AddReconstructionActivity, "Ошибка построения: ${e.message}", Toast.LENGTH_LONG).show()
                     btnBuildMesh.isEnabled = true
+                } finally {
+                    buildMeshProgress.visibility = View.GONE
+                    btnBuildMesh.text = "Построить"
                 }
             }
         }
