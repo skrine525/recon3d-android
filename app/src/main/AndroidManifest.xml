@@ -41,6 +41,7 @@
         <activity
             android:name=".EditMaskActivity"
             android:theme="@style/Theme.Diplom3D.NoActionBar" />
+        <activity android:name=".ViewMeshActivity" android:theme="@style/Theme.Diplom3D.NoActionBar" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

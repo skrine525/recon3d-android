@@ -71,6 +71,7 @@ class AddReconstructionActivity : AppCompatActivity() {
     private lateinit var houghLinesProgress: ProgressBar
     private var uploadedHoughLinesId: String? = null
     private var meshUrl: String? = null
+    private var meshId: Int? = null
 
     companion object {
         private const val REQUEST_CAMERA = 1001
@@ -633,9 +634,12 @@ class AddReconstructionActivity : AppCompatActivity() {
                     if (response.isSuccessful) {
                         val meshResp = response.body()
                         meshUrl = meshResp?.url
-                        if (!meshUrl.isNullOrEmpty()) {
+                        meshId = meshResp?.id // сохраняем id для кнопки 'Просмотреть'
+                        if (meshId != null) {
                             btnViewMesh.isEnabled = true
                             Toast.makeText(this@AddReconstructionActivity, "3D-модель построена!", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(this@AddReconstructionActivity, "Нет id 3D-модели", Toast.LENGTH_LONG).show()
                         }
                     } else {
                         Toast.makeText(this@AddReconstructionActivity, "Ошибка построения: ${response.code()}", Toast.LENGTH_LONG).show()
@@ -648,12 +652,13 @@ class AddReconstructionActivity : AppCompatActivity() {
             }
         }
         btnViewMesh.setOnClickListener {
-            val url = meshUrl
-            if (!url.isNullOrEmpty()) {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            val meshIdStr = meshId?.toString()
+            if (!meshIdStr.isNullOrEmpty()) {
+                val intent = Intent(this, ViewMeshActivity::class.java)
+                intent.putExtra("mesh_id", meshIdStr)
                 startActivity(intent)
             } else {
-                Toast.makeText(this, "Нет ссылки на 3D-модель", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Нет id 3D-модели", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -843,6 +848,22 @@ class AddReconstructionActivity : AppCompatActivity() {
             .setPositiveButton("Да") { _, _ -> super.onBackPressed() }
             .setNegativeButton("Нет", null)
             .show()
+    }
+
+    private suspend fun downloadAndCacheObj(objUrl: String): File? {
+        return try {
+            val url = URL(objUrl)
+            val connection = url.openConnection()
+            connection.connect()
+            val input = connection.getInputStream()
+            val objFile = File(cacheDir, "mesh_${System.currentTimeMillis()}.obj")
+            objFile.outputStream().use { fileOut ->
+                input.copyTo(fileOut)
+            }
+            objFile
+        } catch (e: Exception) {
+            null
+        }
     }
 }
 
