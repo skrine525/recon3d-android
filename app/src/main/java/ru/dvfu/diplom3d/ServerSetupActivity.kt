@@ -26,7 +26,7 @@ import com.google.android.material.textfield.TextInputEditText
 class ServerSetupActivity : AppCompatActivity() {
     private lateinit var editText: EditText
     private lateinit var button: Button
-    private lateinit var fullScreenLoading: View
+    private lateinit var fullScreenLoading: FrameLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,8 +85,9 @@ class ServerSetupActivity : AppCompatActivity() {
 
         content.addView(card)
 
-        // --- Полноэкранный ProgressBar ---
-        val fullScreenLoading = FrameLayout(this)
+        setContentView(layout)
+        // --- Полноэкранный ProgressBar (единый стиль) ---
+        fullScreenLoading = FrameLayout(this)
         fullScreenLoading.setBackgroundColor(0x80000000.toInt())
         fullScreenLoading.visibility = View.GONE
         fullScreenLoading.isClickable = true
@@ -101,9 +102,7 @@ class ServerSetupActivity : AppCompatActivity() {
             FrameLayout.LayoutParams.MATCH_PARENT
         )
         fullScreenLoading.layoutParams = overlayParams
-        layout.addView(fullScreenLoading)
-
-        setContentView(layout)
+        (this.findViewById<android.view.ViewGroup>(android.R.id.content)).addView(fullScreenLoading)
 
         confirmBtn.setOnClickListener {
             val url = serverInput.text.toString().trim().removeSuffix("/")

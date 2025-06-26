@@ -29,7 +29,7 @@ class UserListActivity : AppCompatActivity() {
     lateinit var content: LinearLayout
     lateinit var searchEdit: EditText
     lateinit var swipeRefreshLayout: SwipeRefreshLayout
-    lateinit var fullScreenLoading: FrameLayout
+    private lateinit var fullScreenLoading: FrameLayout
 
     // --- Фильтрация по типу пользователя ---
     enum class UserTypeFilter { ALL, USER, STAFF, SUPERUSER }
@@ -139,7 +139,9 @@ class UserListActivity : AppCompatActivity() {
         swipeRefreshLayout.addView(scrollView)
         rootLayout.addView(swipeRefreshLayout)
 
-        // --- Полноэкранный ProgressBar ---
+        setContentView(rootLayout)
+        setSupportActionBar(toolbar)
+        // --- Полноэкранный ProgressBar (единый стиль) ---
         fullScreenLoading = FrameLayout(this)
         fullScreenLoading.setBackgroundColor(0x80000000.toInt())
         fullScreenLoading.visibility = View.GONE
@@ -155,17 +157,7 @@ class UserListActivity : AppCompatActivity() {
             FrameLayout.LayoutParams.MATCH_PARENT
         )
         fullScreenLoading.layoutParams = overlayParams
-
-        // Итоговый layout
-        val frame = FrameLayout(this)
-        frame.layoutParams = FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,
-            FrameLayout.LayoutParams.MATCH_PARENT
-        )
-        frame.addView(rootLayout)
-        frame.addView(fullScreenLoading)
-        setContentView(frame)
-        setSupportActionBar(toolbar)
+        (this.findViewById<android.view.ViewGroup>(android.R.id.content)).addView(fullScreenLoading)
 
         swipeRefreshLayout.setOnRefreshListener {
             loadUsers(false)

@@ -66,7 +66,7 @@ class UserDetailActivity : AppCompatActivity() {
         setContentView(layout)
         setSupportActionBar(toolbar)
         
-        // --- Полноэкранный ProgressBar ---
+        // --- Полноэкранный ProgressBar (единый стиль) ---
         fullScreenLoading = FrameLayout(this)
         fullScreenLoading.setBackgroundColor(0x80000000.toInt())
         fullScreenLoading.visibility = View.GONE
@@ -82,7 +82,7 @@ class UserDetailActivity : AppCompatActivity() {
             FrameLayout.LayoutParams.MATCH_PARENT
         )
         fullScreenLoading.layoutParams = overlayParams
-        (this.findViewById<ViewGroup>(android.R.id.content)).addView(fullScreenLoading)
+        (this.findViewById<android.view.ViewGroup>(android.R.id.content)).addView(fullScreenLoading)
 
         // --- Загрузка пользователя ---
         if (userId != -1) {

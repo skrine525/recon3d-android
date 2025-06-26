@@ -22,6 +22,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 class ProfileActivity : AppCompatActivity() {
+    private lateinit var fullScreenLoading: FrameLayout
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Toolbar
@@ -33,18 +34,6 @@ class ProfileActivity : AppCompatActivity() {
             Toolbar.LayoutParams.WRAP_CONTENT
         )
         layout.addView(toolbar)
-
-        // --- Полноэкранный ProgressBar ---
-        val fullScreenLoading = FrameLayout(this)
-        fullScreenLoading.setBackgroundColor(0x80000000.toInt())
-        fullScreenLoading.visibility = View.GONE
-        fullScreenLoading.isClickable = true
-        fullScreenLoading.isFocusable = true
-        val progressBar = android.widget.ProgressBar(this)
-        val pbParams = FrameLayout.LayoutParams(128, 128)
-        pbParams.gravity = android.view.Gravity.CENTER
-        progressBar.layoutParams = pbParams
-        fullScreenLoading.addView(progressBar)
 
         // Основной вертикальный layout внутри ScrollView
         val scrollView = android.widget.ScrollView(this)
@@ -307,16 +296,26 @@ class ProfileActivity : AppCompatActivity() {
 
         content.addView(securityCard)
 
-        // В самом конце, чтобы overlay был поверх всего
+        setContentView(layout)
+        setSupportActionBar(toolbar)
+
+        // --- Полноэкранный ProgressBar (единый стиль) ---
+        fullScreenLoading = FrameLayout(this)
+        fullScreenLoading.setBackgroundColor(0x80000000.toInt())
+        fullScreenLoading.visibility = View.GONE
+        fullScreenLoading.isClickable = true
+        fullScreenLoading.isFocusable = true
+        val progressBar = android.widget.ProgressBar(this)
+        val pbParams = FrameLayout.LayoutParams(128, 128)
+        pbParams.gravity = android.view.Gravity.CENTER
+        progressBar.layoutParams = pbParams
+        fullScreenLoading.addView(progressBar)
         val overlayParams = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT
         )
         fullScreenLoading.layoutParams = overlayParams
-        layout.addView(fullScreenLoading)
-
-        setContentView(layout)
-        setSupportActionBar(toolbar)
+        (this.findViewById<android.view.ViewGroup>(android.R.id.content)).addView(fullScreenLoading)
 
         // --- Загрузка данных пользователя ---
         fullScreenLoading.visibility = View.VISIBLE

@@ -25,6 +25,7 @@ import com.google.android.material.textfield.TextInputEditText
 
 class AuthActivity : FragmentActivity() {
     private lateinit var binding: ActivityAuthBinding
+    private lateinit var fullScreenLoading: FrameLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -162,8 +163,9 @@ class AuthActivity : FragmentActivity() {
 
         content.addView(card)
 
-        // --- Полноэкранный ProgressBar ---
-        val fullScreenLoading = FrameLayout(this)
+        setContentView(layout)
+        // --- Полноэкранный ProgressBar (единый стиль) ---
+        fullScreenLoading = FrameLayout(this)
         fullScreenLoading.setBackgroundColor(0x80000000.toInt())
         fullScreenLoading.visibility = View.GONE
         fullScreenLoading.isClickable = true
@@ -178,9 +180,7 @@ class AuthActivity : FragmentActivity() {
             FrameLayout.LayoutParams.MATCH_PARENT
         )
         fullScreenLoading.layoutParams = overlayParams
-        layout.addView(fullScreenLoading)
-
-        setContentView(layout)
+        (this.findViewById<android.view.ViewGroup>(android.R.id.content)).addView(fullScreenLoading)
 
         // --- Переключение форм ---
         showRegister.setOnClickListener {
