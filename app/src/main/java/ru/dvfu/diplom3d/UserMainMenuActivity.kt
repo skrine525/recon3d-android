@@ -15,6 +15,9 @@ import android.widget.LinearLayout
 import android.view.View
 import android.content.Intent
 import android.app.AlertDialog
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class UserMainMenuActivity : AppCompatActivity() {
     private var usernameView: TextView? = null
@@ -30,8 +33,9 @@ class UserMainMenuActivity : AppCompatActivity() {
         )
         drawerLayout.layoutParams = drawerParams
 
-        // Content (FrameLayout с Toolbar)
-        val content = FrameLayout(this)
+        // Content (LinearLayout с Toolbar и карточкой)
+        val content = LinearLayout(this)
+        content.orientation = LinearLayout.VERTICAL
         content.layoutParams = DrawerLayout.LayoutParams(
             DrawerLayout.LayoutParams.MATCH_PARENT,
             DrawerLayout.LayoutParams.MATCH_PARENT
@@ -46,6 +50,58 @@ class UserMainMenuActivity : AppCompatActivity() {
         )
         content.addView(toolbar)
 
+        // --- Карточка 'Список реконструкций' ---
+        val cardsLayout = LinearLayout(this)
+        cardsLayout.orientation = LinearLayout.VERTICAL
+        cardsLayout.setPadding(32, 48, 32, 32)
+        val swipeRefresh = androidx.swiperefreshlayout.widget.SwipeRefreshLayout(this)
+        val cardIdent = com.google.android.material.card.MaterialCardView(this)
+        val cardIdentParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        cardIdentParams.bottomMargin = 32
+        cardIdent.layoutParams = cardIdentParams
+        cardIdent.radius = 24f
+        cardIdent.cardElevation = 8f
+        cardIdent.setContentPadding(32, 32, 32, 32)
+        val layoutIdent = LinearLayout(this)
+        layoutIdent.orientation = LinearLayout.VERTICAL
+        val titleIdent = TextView(this)
+        titleIdent.text = "Список реконструкций"
+        titleIdent.textSize = 20f
+        titleIdent.setTextColor(0xFF000000.toInt())
+        titleIdent.setTypeface(null, android.graphics.Typeface.BOLD)
+        layoutIdent.addView(titleIdent)
+        // Отступ после тайтла
+        val spaceAfterTitle = View(this)
+        val spaceParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            24
+        )
+        spaceAfterTitle.layoutParams = spaceParams
+        layoutIdent.addView(spaceAfterTitle)
+        // --- Поисковый инпут ---
+        val searchInputLayout = com.google.android.material.textfield.TextInputLayout(this)
+        val searchEditText = com.google.android.material.textfield.TextInputEditText(this)
+        searchInputLayout.layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        searchInputLayout.hint = "Поиск по названию"
+        searchInputLayout.boxBackgroundMode = 0
+        searchInputLayout.addView(searchEditText)
+        layoutIdent.addView(searchInputLayout)
+        // --- Прогрессбар и контейнер для кнопок ---
+        val reconProgress = android.widget.ProgressBar(this)
+        layoutIdent.addView(reconProgress)
+        val reconButtonsLayout = LinearLayout(this)
+        reconButtonsLayout.orientation = LinearLayout.VERTICAL
+        layoutIdent.addView(reconButtonsLayout)
+        cardIdent.addView(layoutIdent)
+        swipeRefresh.addView(cardIdent)
+        cardsLayout.addView(swipeRefresh)
+        content.addView(cardsLayout)
         drawerLayout.addView(content)
 
         // NavigationView (sidebar)
@@ -128,6 +184,77 @@ class UserMainMenuActivity : AppCompatActivity() {
         )
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
+
+        // --- Логика списка реконструкций для пользователя ---
+        var allReconstructions: List<ru.dvfu.diplom3d.api.ReconstructionListItem> = emptyList()
+        fun showFilteredReconstructions(query: String) {
+            reconButtonsLayout.removeAllViews()
+            val filtered = if (query.isBlank()) allReconstructions else allReconstructions.filter { it.name.contains(query, ignoreCase = true) }
+            for (item in filtered) {
+                val btn = android.widget.Button(this@UserMainMenuActivity)
+                btn.text = item.name
+                btn.setBackgroundResource(R.drawable.blue_button)
+                btn.setTextColor(0xFFFFFFFF.toInt())
+                val params = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                params.bottomMargin = 16
+                btn.layoutParams = params
+                btn.setOnClickListener {
+                    val intent = Intent(this@UserMainMenuActivity, ReconstructionDetailActivity::class.java)
+                    intent.putExtra("reconstruction_id", item.id)
+                    startActivity(intent)
+                }
+                reconButtonsLayout.addView(btn)
+            }
+            if (filtered.isEmpty()) {
+                val tv = TextView(this@UserMainMenuActivity)
+                tv.text = "Ничего не найдено"
+                tv.setTextColor(0xFF888888.toInt())
+                reconButtonsLayout.addView(tv)
+            }
+        }
+        fun loadReconstructions() {
+            reconProgress.visibility = View.VISIBLE
+            reconButtonsLayout.removeAllViews()
+            val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+            val baseUrl = prefs.getString("server_url", "") ?: ""
+            val api = ru.dvfu.diplom3d.api.RetrofitInstance.getApiService(baseUrl, this)
+            CoroutineScope(Dispatchers.Main).launch {
+                try {
+                    val response = api.getReconstructions()
+                    if (response.isSuccessful) {
+                        allReconstructions = response.body() ?: emptyList()
+                        showFilteredReconstructions(searchEditText.text?.toString() ?: "")
+                    } else {
+                        val tv = TextView(this@UserMainMenuActivity)
+                        tv.text = "Ошибка загрузки: \\${response.code()}"
+                        tv.setTextColor(0xFFFF0000.toInt())
+                        reconButtonsLayout.addView(tv)
+                    }
+                } catch (e: Exception) {
+                    val tv = TextView(this@UserMainMenuActivity)
+                    tv.text = "Ошибка: \\${e.localizedMessage}"
+                    tv.setTextColor(0xFFFF0000.toInt())
+                    reconButtonsLayout.addView(tv)
+                } finally {
+                    reconProgress.visibility = View.GONE
+                    swipeRefresh.isRefreshing = false
+                }
+            }
+        }
+        searchEditText.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                showFilteredReconstructions(s?.toString() ?: "")
+            }
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        })
+        swipeRefresh.setOnRefreshListener {
+            loadReconstructions()
+        }
+        loadReconstructions()
     }
 
     override fun onResume() {
