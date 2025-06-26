@@ -106,6 +106,8 @@ class AddReconstructionActivity : AppCompatActivity() {
         scrollView.addView(content)
         layout.addView(scrollView)
 
+        // --- Цвета для disabled ---
+        val grayButtonRes = R.drawable.gray_button
         // --- Карточка 'План помещения' ---
         val card = MaterialCardView(this)
         val cardParams = LinearLayout.LayoutParams(
@@ -136,6 +138,12 @@ class AddReconstructionActivity : AppCompatActivity() {
         btnPhotoParams.topMargin = 24
         btnPhoto.layoutParams = btnPhotoParams
         cardLayout.addView(btnPhoto)
+        btnPhoto.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+            btnPhoto.setBackgroundResource(if (btnPhoto.isEnabled) R.drawable.green_button else grayButtonRes)
+        }
+        btnPhoto.setOnFocusChangeListener { _, _ ->
+            btnPhoto.setBackgroundResource(if (btnPhoto.isEnabled) R.drawable.green_button else grayButtonRes)
+        }
         val btnPick = Button(this)
         btnPick.text = "Выбрать на устройстве"
         btnPick.setBackgroundResource(R.drawable.blue_button)
@@ -147,6 +155,12 @@ class AddReconstructionActivity : AppCompatActivity() {
         btnPickParams.topMargin = 16
         btnPick.layoutParams = btnPickParams
         cardLayout.addView(btnPick)
+        btnPick.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+            btnPick.setBackgroundResource(if (btnPick.isEnabled) R.drawable.blue_button else grayButtonRes)
+        }
+        btnPick.setOnFocusChangeListener { _, _ ->
+            btnPick.setBackgroundResource(if (btnPick.isEnabled) R.drawable.blue_button else grayButtonRes)
+        }
         // Серый блок под фото с соотношением 16:9
         val photoBlock = FrameLayout(this)
         photoBlock.setBackgroundColor(0xFFCCCCCC.toInt())
@@ -224,6 +238,12 @@ class AddReconstructionActivity : AppCompatActivity() {
         )
         btnMaskParams.topMargin = 16
         btnMask.layoutParams = btnMaskParams
+        btnMask.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+            btnMask.setBackgroundResource(if (btnMask.isEnabled) R.drawable.green_button else grayButtonRes)
+        }
+        btnMask.setOnFocusChangeListener { _, _ ->
+            btnMask.setBackgroundResource(if (btnMask.isEnabled) R.drawable.green_button else grayButtonRes)
+        }
         // Прогресс-бар для маски внутри кнопки
         val btnMaskContainer = FrameLayout(this)
         btnMaskContainer.layoutParams = btnMaskParams
@@ -280,6 +300,12 @@ class AddReconstructionActivity : AppCompatActivity() {
         btnEditMask.layoutParams = btnEditMaskParams
         btnEditMask.isEnabled = false
         editMaskLayout.addView(btnEditMask)
+        btnEditMask.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+            btnEditMask.setBackgroundResource(if (btnEditMask.isEnabled) R.drawable.blue_button else grayButtonRes)
+        }
+        btnEditMask.setOnFocusChangeListener { _, _ ->
+            btnEditMask.setBackgroundResource(if (btnEditMask.isEnabled) R.drawable.blue_button else grayButtonRes)
+        }
         editMaskCard.addView(editMaskLayout)
         content.addView(editMaskCard)
 
@@ -314,6 +340,12 @@ class AddReconstructionActivity : AppCompatActivity() {
         )
         btnHoughParams.topMargin = 16
         btnCalculateHoughLines.layoutParams = btnHoughParams
+        btnCalculateHoughLines.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+            btnCalculateHoughLines.setBackgroundResource(if (btnCalculateHoughLines.isEnabled) R.drawable.green_button else grayButtonRes)
+        }
+        btnCalculateHoughLines.setOnFocusChangeListener { _, _ ->
+            btnCalculateHoughLines.setBackgroundResource(if (btnCalculateHoughLines.isEnabled) R.drawable.green_button else grayButtonRes)
+        }
 
         val btnHoughContainer = FrameLayout(this)
         btnHoughContainer.layoutParams = btnHoughParams
@@ -398,6 +430,12 @@ class AddReconstructionActivity : AppCompatActivity() {
         btnBuildMeshParams.topMargin = 16
         btnBuildMesh.layoutParams = btnBuildMeshParams
         btnBuildMesh.isEnabled = false // станет активной после расчёта линий Хафа
+        btnBuildMesh.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+            btnBuildMesh.setBackgroundResource(if (btnBuildMesh.isEnabled) R.drawable.green_button else grayButtonRes)
+        }
+        btnBuildMesh.setOnFocusChangeListener { _, _ ->
+            btnBuildMesh.setBackgroundResource(if (btnBuildMesh.isEnabled) R.drawable.green_button else grayButtonRes)
+        }
         // Кнопка 'Построить' с прогресс-баром
         val btnBuildMeshContainer = FrameLayout(this)
         btnBuildMeshContainer.layoutParams = btnBuildMeshParams
@@ -425,6 +463,12 @@ class AddReconstructionActivity : AppCompatActivity() {
         btnViewMeshParams.topMargin = 16
         btnViewMesh.layoutParams = btnViewMeshParams
         btnViewMesh.isEnabled = false // станет активной после успешного построения
+        btnViewMesh.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+            btnViewMesh.setBackgroundResource(if (btnViewMesh.isEnabled) R.drawable.blue_button else grayButtonRes)
+        }
+        btnViewMesh.setOnFocusChangeListener { _, _ ->
+            btnViewMesh.setBackgroundResource(if (btnViewMesh.isEnabled) R.drawable.blue_button else grayButtonRes)
+        }
         meshLayout.addView(btnViewMesh)
         meshCard.addView(meshLayout)
         content.addView(meshCard)
@@ -468,6 +512,12 @@ class AddReconstructionActivity : AppCompatActivity() {
         btnSave.layoutParams = btnSaveParams
         btnSave.isEnabled = false // станет активной после построения модели и если поле не пустое
         saveLayout.addView(btnSave)
+        btnSave.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+            btnSave.setBackgroundResource(if (btnSave.isEnabled) R.drawable.green_button else grayButtonRes)
+        }
+        btnSave.setOnFocusChangeListener { _, _ ->
+            btnSave.setBackgroundResource(if (btnSave.isEnabled) R.drawable.green_button else grayButtonRes)
+        }
         saveCard.addView(saveLayout)
         content.addView(saveCard)
         // Логика активации кнопки
@@ -488,6 +538,7 @@ class AddReconstructionActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             btnBuildMesh.isEnabled = false
+            btnBuildMesh.setBackgroundResource(grayButtonRes)
             buildMeshProgress.visibility = View.VISIBLE
             btnBuildMesh.text = ""
             CoroutineScope(Dispatchers.Main).launch {
@@ -502,6 +553,7 @@ class AddReconstructionActivity : AppCompatActivity() {
                         meshId = meshResp?.id // сохраняем id для кнопки 'Просмотреть'
                         if (meshId != null) {
                             btnViewMesh.isEnabled = true
+                            btnViewMesh.setBackgroundResource(R.drawable.blue_button)
                             Toast.makeText(this@AddReconstructionActivity, "3D-модель построена!", Toast.LENGTH_SHORT).show()
                             // --- Активируем кнопку 'Сохранить', если поле заполнено ---
                             btnSave.isEnabled = !nameEdit.text.isNullOrBlank()
@@ -511,10 +563,12 @@ class AddReconstructionActivity : AppCompatActivity() {
                     } else {
                         Toast.makeText(this@AddReconstructionActivity, "Ошибка построения: ${response.code()}", Toast.LENGTH_LONG).show()
                         btnBuildMesh.isEnabled = true
+                        btnBuildMesh.setBackgroundResource(R.drawable.green_button)
                     }
                 } catch (e: Exception) {
                     Toast.makeText(this@AddReconstructionActivity, "Ошибка построения: ${e.message}", Toast.LENGTH_LONG).show()
                     btnBuildMesh.isEnabled = true
+                    btnBuildMesh.setBackgroundResource(R.drawable.green_button)
                 } finally {
                     buildMeshProgress.visibility = View.GONE
                     btnBuildMesh.text = "Построить"
@@ -598,6 +652,7 @@ class AddReconstructionActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             btnMask.isEnabled = false
+            btnMask.setBackgroundResource(grayButtonRes)
             maskProgress.visibility = View.VISIBLE
             btnMask.text = ""
             CoroutineScope(Dispatchers.Main).launch {
@@ -623,7 +678,9 @@ class AddReconstructionActivity : AppCompatActivity() {
                                             maskImageView.setImageBitmap(resource)
                                             maskPhotoText.visibility = View.GONE
                                             btnEditMask.isEnabled = true
+                                            btnEditMask.setBackgroundResource(R.drawable.blue_button)
                                             btnCalculateHoughLines.isEnabled = true
+                                            btnCalculateHoughLines.setBackgroundResource(R.drawable.green_button)
                                         } else {
                                             // ничего не делаем
                                         }
@@ -640,6 +697,7 @@ class AddReconstructionActivity : AppCompatActivity() {
                     maskProgress.visibility = View.GONE
                     btnMask.text = "Просчитать маску"
                     btnMask.isEnabled = true
+                    btnMask.setBackgroundResource(R.drawable.green_button)
                 }
             }
         }
@@ -664,6 +722,7 @@ class AddReconstructionActivity : AppCompatActivity() {
 
             Toast.makeText(this, "Выполняется загрузка маски...", Toast.LENGTH_SHORT).show()
             btnCalculateHoughLines.isEnabled = false
+            btnCalculateHoughLines.setBackgroundResource(grayButtonRes)
             houghLinesProgress.visibility = View.VISIBLE
             btnCalculateHoughLines.text = ""
 
@@ -673,6 +732,7 @@ class AddReconstructionActivity : AppCompatActivity() {
                 btnCalculateHoughLines.isEnabled = true
                 houghLinesProgress.visibility = View.GONE
                 btnCalculateHoughLines.text = "Просчитать линии"
+                btnCalculateHoughLines.setBackgroundResource(R.drawable.green_button)
                 return@setOnClickListener
             }
 
@@ -718,6 +778,7 @@ class AddReconstructionActivity : AppCompatActivity() {
                                                }
                                                // --- Активируем кнопку 'Построить' 3D ---
                                                btnBuildMesh.isEnabled = true
+                                               btnBuildMesh.setBackgroundResource(R.drawable.green_button)
                                            }
                                            override fun onLoadCleared(placeholder: android.graphics.drawable.Drawable?) {}
                                        })
@@ -743,6 +804,7 @@ class AddReconstructionActivity : AppCompatActivity() {
                     houghLinesProgress.visibility = View.GONE
                     btnCalculateHoughLines.text = "Просчитать линии"
                     btnCalculateHoughLines.isEnabled = true
+                    btnCalculateHoughLines.setBackgroundResource(R.drawable.green_button)
                 }
             }
         }
@@ -794,7 +856,10 @@ class AddReconstructionActivity : AppCompatActivity() {
                 maskImageView.setImageBitmap(bitmap)
                 maskPhotoText.visibility = View.GONE
                 btnEditMask.setTag(path)
+                btnEditMask.isEnabled = true
+                btnEditMask.setBackgroundResource(R.drawable.blue_button)
                 btnCalculateHoughLines.isEnabled = true
+                btnCalculateHoughLines.setBackgroundResource(R.drawable.green_button)
             }
         }
         if (resultCode != Activity.RESULT_OK) return
@@ -878,6 +943,7 @@ class AddReconstructionActivity : AppCompatActivity() {
                     photoText.visibility = View.GONE
                     // Делаем кнопку активной после загрузки
                     btnMask.isEnabled = true
+                    btnMask.setBackgroundResource(R.drawable.green_button)
                 } else {
                     Toast.makeText(this@AddReconstructionActivity, "Ошибка загрузки: ${response.code()}", Toast.LENGTH_LONG).show()
                 }
