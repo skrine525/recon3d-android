@@ -98,6 +98,9 @@ interface ApiService {
     suspend fun getReconstructions(
         @Query("is_saved") isSaved: Int = 1
     ): Response<List<ReconstructionListItem>>
+
+    @GET("/api/v1/reconstruction/reconstructions/{id}")
+    suspend fun getReconstructionById(@Path("id") id: Int): Response<CalculateMeshResponse>
 }
 
 // Примеры моделей для login/register

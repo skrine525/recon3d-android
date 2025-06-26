@@ -6,6 +6,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import android.widget.LinearLayout
 import android.view.View
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import ru.dvfu.diplom3d.api.RetrofitInstance
+import ru.dvfu.diplom3d.api.CalculateMeshResponse
+import ru.dvfu.diplom3d.api.UserResponse
+import android.widget.FrameLayout
 
 class ReconstructionDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -17,6 +24,94 @@ class ReconstructionDetailActivity : AppCompatActivity() {
         layout.addView(toolbar)
         setSupportActionBar(toolbar)
         val id = intent.getIntExtra("reconstruction_id", -1)
+
+        // Карточка "Информация"
+        val infoCard = com.google.android.material.card.MaterialCardView(this)
+        val infoCardParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        infoCardParams.topMargin = 32
+        infoCardParams.bottomMargin = 32
+        infoCard.layoutParams = infoCardParams
+        infoCard.radius = 24f
+        infoCard.cardElevation = 8f
+        infoCard.setContentPadding(32, 32, 32, 32)
+        val infoLayout = LinearLayout(this)
+        infoLayout.orientation = LinearLayout.VERTICAL
+        infoLayout.setPadding(0, 0, 0, 0)
+        infoCard.addView(infoLayout)
+
+        val infoTitle = TextView(this)
+        infoTitle.text = "Информация"
+        infoTitle.textSize = 20f
+        infoTitle.setTypeface(null, android.graphics.Typeface.BOLD)
+        infoTitle.setTextColor(0xFF000000.toInt())
+        val infoTitleParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        infoTitleParams.bottomMargin = 24
+        infoLayout.addView(infoTitle, infoTitleParams)
+
+        // Прогрессбар для карточки и содержимое в FrameLayout
+        val infoFrame = FrameLayout(this)
+        val infoFrameParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        infoFrame.layoutParams = infoFrameParams
+        infoLayout.addView(infoFrame)
+
+        val infoProgress = android.widget.ProgressBar(this)
+        val infoProgressParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+        infoProgressParams.gravity = android.view.Gravity.CENTER
+        infoProgress.layoutParams = infoProgressParams
+        infoFrame.addView(infoProgress)
+
+        val infoContentLayout = LinearLayout(this)
+        infoContentLayout.orientation = LinearLayout.VERTICAL
+        val infoContentParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+        infoContentLayout.layoutParams = infoContentParams
+        infoFrame.addView(infoContentLayout)
+        infoContentLayout.visibility = View.INVISIBLE
+
+        fun makeLabel(text: String): TextView {
+            val tv = TextView(this)
+            tv.text = text
+            tv.setTypeface(null, android.graphics.Typeface.BOLD)
+            tv.textSize = 16f
+            tv.setTextColor(0xFF444444.toInt())
+            val params = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            params.bottomMargin = 2
+            tv.layoutParams = params
+            return tv
+        }
+        fun makeValue(): TextView {
+            val tv = TextView(this)
+            tv.textSize = 16f
+            tv.setTextColor(0xFF444444.toInt())
+            val params = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            params.bottomMargin = 12
+            tv.layoutParams = params
+            return tv
+        }
+
+        val idLabel = makeLabel("ID:")
+        val idValue = makeValue()
+        infoContentLayout.addView(idLabel)
+        infoContentLayout.addView(idValue)
+
+        val nameLabel = makeLabel("Название:")
+        val nameValue = makeValue()
+        infoContentLayout.addView(nameLabel)
+        infoContentLayout.addView(nameValue)
+
+        val createdByLabel = makeLabel("Создатель:")
+        val createdByValue = makeValue()
+        infoContentLayout.addView(createdByLabel)
+        infoContentLayout.addView(createdByValue)
+
+        val createdAtLabel = makeLabel("Время сохранения:")
+        val createdAtValue = makeValue()
+        infoContentLayout.addView(createdAtLabel)
+        infoContentLayout.addView(createdAtValue)
+
+        layout.addView(infoCard)
 
         // Карточка с кнопками
         val card = com.google.android.material.card.MaterialCardView(this)
@@ -71,5 +166,53 @@ class ReconstructionDetailActivity : AppCompatActivity() {
         card.addView(cardLayout)
         layout.addView(card)
         setContentView(layout)
+
+        // Скрываем содержимое карточки до загрузки
+        infoContentLayout.visibility = View.INVISIBLE
+        infoProgress.visibility = View.VISIBLE
+
+        // Загрузка информации о реконструкции и пользователе
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        val baseUrl = prefs.getString("server_url", "") ?: ""
+        val api = RetrofitInstance.getApiService(baseUrl, this)
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val resp = api.getReconstructionById(id)
+                if (resp.isSuccessful) {
+                    val recon = resp.body()
+                    idValue.text = recon?.id?.toString() ?: "-"
+                    nameValue.text = recon?.name ?: "-"
+                    createdAtValue.text = recon?.created_at?.let { raw ->
+                        try {
+                            val inputFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+                            val outputFormat = java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault())
+                            val date = inputFormat.parse(raw.substring(0, 19))
+                            if (date != null) outputFormat.format(date) else raw
+                        } catch (e: Exception) {
+                            raw
+                        }
+                    } ?: "-"
+                    if (recon?.created_by != null) {
+                        val userResp = api.getUser(recon.created_by)
+                        if (userResp.isSuccessful) {
+                            val user = userResp.body()
+                            createdByValue.text = user?.display_name ?: user?.username ?: recon.created_by.toString()
+                        } else {
+                            createdByValue.text = recon.created_by.toString()
+                        }
+                    } else {
+                        createdByValue.text = "-"
+                    }
+                } else {
+                    idValue.text = "Ошибка загрузки информации"
+                }
+            } catch (e: Exception) {
+                idValue.text = "Ошибка: ${e.localizedMessage}"
+            } finally {
+                // Показываем содержимое карточки, убираем прогрессбар
+                infoContentLayout.visibility = View.VISIBLE
+                infoProgress.visibility = View.INVISIBLE
+            }
+        }
     }
 } 
