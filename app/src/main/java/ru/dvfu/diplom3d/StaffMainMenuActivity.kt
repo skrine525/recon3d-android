@@ -72,7 +72,7 @@ class StaffMainMenuActivity : AppCompatActivity() {
         val layout3d = LinearLayout(this)
         layout3d.orientation = LinearLayout.VERTICAL
         val title3d = TextView(this)
-        title3d.text = "3D-реконструкция"
+        title3d.text = "Управление реконструкциями"
         title3d.textSize = 20f
         title3d.setTextColor(0xFF000000.toInt())
         title3d.setTypeface(null, android.graphics.Typeface.BOLD)
@@ -88,17 +88,6 @@ class StaffMainMenuActivity : AppCompatActivity() {
         btnAddParams.topMargin = 24
         btnAdd.layoutParams = btnAddParams
         layout3d.addView(btnAdd)
-        val btnView = android.widget.Button(this)
-        btnView.text = "Просмотр реконструкции"
-        btnView.setBackgroundResource(R.drawable.blue_button)
-        btnView.setTextColor(0xFFFFFFFF.toInt())
-        val btnViewParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        btnViewParams.topMargin = 16
-        btnView.layoutParams = btnViewParams
-        layout3d.addView(btnView)
         card3d.addView(layout3d)
         cardsLayout.addView(card3d)
         // --- Карточка Идентификация пользователя ---
@@ -115,7 +104,7 @@ class StaffMainMenuActivity : AppCompatActivity() {
         val layoutIdent = LinearLayout(this)
         layoutIdent.orientation = LinearLayout.VERTICAL
         val titleIdent = TextView(this)
-        titleIdent.text = "Идентификация пользователя"
+        titleIdent.text = "Список реконструкций"
         titleIdent.textSize = 20f
         titleIdent.setTextColor(0xFF000000.toInt())
         titleIdent.setTypeface(null, android.graphics.Typeface.BOLD)
