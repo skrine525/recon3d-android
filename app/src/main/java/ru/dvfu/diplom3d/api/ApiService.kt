@@ -176,10 +176,10 @@ data class CalculateMeshRequest(
 )
 data class CalculateMeshResponse(
     val id: Int,
+    val name: String,
     val mesh_file_path: String,
     val created_at: String,
     val created_by: Int,
-    val is_saved: Boolean,
     val saved_at: String?,
     val url: String
 ) 
