@@ -217,7 +217,22 @@ class IdentifyUserActivity : AppCompatActivity() {
         )
         btnIdentifyParams.topMargin = 16
         btnIdentify.layoutParams = btnIdentifyParams
-        idLayout.addView(btnIdentify)
+        val btnIdentifyContainer = FrameLayout(this)
+        btnIdentifyContainer.layoutParams = btnIdentifyParams
+        btnIdentifyContainer.addView(btnIdentify)
+        val identifyProgress = ProgressBar(this, null, android.R.attr.progressBarStyleSmall)
+        val identifyProgressParams = FrameLayout.LayoutParams(64, 64)
+        identifyProgressParams.gravity = android.view.Gravity.CENTER
+        identifyProgress.layoutParams = identifyProgressParams
+        identifyProgress.visibility = View.GONE
+        btnIdentifyContainer.addView(identifyProgress)
+        idLayout.addView(btnIdentifyContainer)
+        val scaleInputParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        scaleInputParams.topMargin = 16
+        scaleInputLayout.layoutParams = scaleInputParams
         idCard.addView(idLayout)
         content.addView(idCard)
 
@@ -253,7 +268,8 @@ class IdentifyUserActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             btnIdentify.isEnabled = false
-            photoProgress?.visibility = View.VISIBLE
+            btnIdentify.setBackgroundResource(grayButtonRes)
+            identifyProgress.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.Main).launch {
                 try {
                     val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
@@ -280,7 +296,8 @@ class IdentifyUserActivity : AppCompatActivity() {
                     Toast.makeText(this@IdentifyUserActivity, "Ошибка идентификации: ${e.message}", Toast.LENGTH_LONG).show()
                 } finally {
                     btnIdentify.isEnabled = true
-                    photoProgress?.visibility = View.GONE
+                    btnIdentify.setBackgroundResource(R.drawable.green_button)
+                    identifyProgress.visibility = View.GONE
                 }
             }
         }
