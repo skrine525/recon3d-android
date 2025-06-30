@@ -194,10 +194,12 @@ data class CalculateMeshRequest(
 data class CalculateMeshResponse(
     val id: Int,
     val name: String,
+    val status: Int,
+    val status_display: String,
     val created_at: String,
     val created_by: Int,
     val saved_at: String?,
-    val url: String
+    val url: String?
 )
 
 data class SaveReconstructionRequest(val name: String)
