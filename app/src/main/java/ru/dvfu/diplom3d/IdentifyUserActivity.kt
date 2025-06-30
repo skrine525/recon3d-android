@@ -203,11 +203,11 @@ class IdentifyUserActivity : AppCompatActivity() {
         idTitle.setTypeface(null, android.graphics.Typeface.BOLD)
         idLayout.addView(idTitle)
         val scaleInputLayout = com.google.android.material.textfield.TextInputLayout(this)
-        scaleInputLayout.hint = "Размер (число)"
+        scaleInputLayout.hint = "Размер"
+        scaleInputLayout.boxBackgroundMode = 0
         val scaleEdit = com.google.android.material.textfield.TextInputEditText(this)
         scaleEdit.inputType = android.text.InputType.TYPE_CLASS_NUMBER
         scaleInputLayout.addView(scaleEdit)
-        scaleInputLayout.boxBackgroundMode = 0
         idLayout.addView(scaleInputLayout)
         val btnIdentify = Button(this)
         btnIdentify.text = "Произвести идентификацию"
@@ -229,12 +229,6 @@ class IdentifyUserActivity : AppCompatActivity() {
         identifyProgress.visibility = View.GONE
         btnIdentifyContainer.addView(identifyProgress)
         idLayout.addView(btnIdentifyContainer)
-        val scaleInputParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        scaleInputParams.topMargin = 24
-        scaleInputLayout.layoutParams = scaleInputParams
         idCard.addView(idLayout)
         content.addView(idCard)
 
