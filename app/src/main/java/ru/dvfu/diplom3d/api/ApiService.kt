@@ -109,6 +109,12 @@ interface ApiService {
 
     @PATCH("/api/v1/reconstruction/reconstructions/{id}")
     suspend fun patchReconstruction(@Path("id") id: Int, @Body body: PatchReconstructionRequest): Response<Void>
+
+    @Multipart
+    @POST("/api/v1/upload/user-environment-photo/")
+    suspend fun uploadUserEnvironmentPhoto(
+        @Part file: MultipartBody.Part
+    ): Response<UploadPhotoResponse>
 }
 
 // Примеры моделей для login/register
