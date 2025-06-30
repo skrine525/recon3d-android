@@ -34,6 +34,7 @@ class IdentifyUserActivity : AppCompatActivity() {
 
     fun uploadPhoto(file: File) {
         photoProgress?.visibility = View.VISIBLE
+        imageView?.alpha = 0.5f
         val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
         val baseUrl = prefs.getString("server_url", "") ?: ""
         val api = ru.dvfu.diplom3d.api.RetrofitInstance.getApiService(baseUrl, this)
@@ -53,6 +54,7 @@ class IdentifyUserActivity : AppCompatActivity() {
                 Toast.makeText(this@IdentifyUserActivity, "Ошибка загрузки: ${e.message}", Toast.LENGTH_LONG).show()
             } finally {
                 photoProgress?.visibility = View.GONE
+                imageView?.alpha = 1.0f
             }
         }
     }
@@ -231,7 +233,7 @@ class IdentifyUserActivity : AppCompatActivity() {
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
         )
-        scaleInputParams.topMargin = 16
+        scaleInputParams.topMargin = 24
         scaleInputLayout.layoutParams = scaleInputParams
         idCard.addView(idLayout)
         content.addView(idCard)
@@ -269,6 +271,7 @@ class IdentifyUserActivity : AppCompatActivity() {
             }
             btnIdentify.isEnabled = false
             btnIdentify.setBackgroundResource(grayButtonRes)
+            btnIdentify.text = ""
             identifyProgress.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.Main).launch {
                 try {
@@ -297,6 +300,7 @@ class IdentifyUserActivity : AppCompatActivity() {
                 } finally {
                     btnIdentify.isEnabled = true
                     btnIdentify.setBackgroundResource(R.drawable.green_button)
+                    btnIdentify.text = "Произвести идентификацию"
                     identifyProgress.visibility = View.GONE
                 }
             }
