@@ -30,6 +30,7 @@ class IdentifyUserActivity : AppCompatActivity() {
     private var imageView: ImageView? = null
     private var photoProgress: ProgressBar? = null
     private var photoText: TextView? = null
+    private var uploadedEnvPhotoId: String? = null
 
     fun uploadPhoto(file: File) {
         photoProgress?.visibility = View.VISIBLE
@@ -44,6 +45,7 @@ class IdentifyUserActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     val resp = response.body()
                     Toast.makeText(this@IdentifyUserActivity, "Фото окружения загружено!", Toast.LENGTH_SHORT).show()
+                    uploadedEnvPhotoId = resp?.id
                 } else {
                     Toast.makeText(this@IdentifyUserActivity, "Ошибка загрузки: ${response.code()}", Toast.LENGTH_LONG).show()
                 }
@@ -179,6 +181,46 @@ class IdentifyUserActivity : AppCompatActivity() {
         card.addView(cardLayout)
         content.addView(card)
 
+        // --- Карточка 'Идентификация' ---
+        val idCard = com.google.android.material.card.MaterialCardView(this)
+        val idCardParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        idCardParams.bottomMargin = 32
+        idCard.layoutParams = idCardParams
+        idCard.radius = 24f
+        idCard.cardElevation = 8f
+        idCard.setContentPadding(32, 32, 32, 32)
+        val idLayout = LinearLayout(this)
+        idLayout.orientation = LinearLayout.VERTICAL
+        val idTitle = TextView(this)
+        idTitle.text = "Идентификация"
+        idTitle.textSize = 20f
+        idTitle.setTextColor(0xFF000000.toInt())
+        idTitle.setTypeface(null, android.graphics.Typeface.BOLD)
+        idLayout.addView(idTitle)
+        val scaleInputLayout = com.google.android.material.textfield.TextInputLayout(this)
+        scaleInputLayout.hint = "Размер (число)"
+        val scaleEdit = com.google.android.material.textfield.TextInputEditText(this)
+        scaleEdit.inputType = android.text.InputType.TYPE_CLASS_NUMBER
+        scaleInputLayout.addView(scaleEdit)
+        scaleInputLayout.boxBackgroundMode = 0
+        idLayout.addView(scaleInputLayout)
+        val btnIdentify = Button(this)
+        btnIdentify.text = "Произвести идентификацию"
+        btnIdentify.setBackgroundResource(R.drawable.green_button)
+        btnIdentify.setTextColor(0xFFFFFFFF.toInt())
+        val btnIdentifyParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        btnIdentifyParams.topMargin = 16
+        btnIdentify.layoutParams = btnIdentifyParams
+        idLayout.addView(btnIdentify)
+        idCard.addView(idLayout)
+        content.addView(idCard)
+
         setContentView(layout)
         setSupportActionBar(toolbar)
 
@@ -196,6 +238,52 @@ class IdentifyUserActivity : AppCompatActivity() {
             val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
             startActivityForResult(intent, REQUEST_GALLERY)
         }
+
+        btnIdentify.setOnClickListener {
+            val scaleStr = scaleEdit.text?.toString()?.trim()
+            val scale = scaleStr?.toIntOrNull()
+            if (scale == null) {
+                Toast.makeText(this, "Введите корректный размер", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val reconstructionId = id
+            val fileId = uploadedEnvPhotoId
+            if (fileId.isNullOrEmpty()) {
+                Toast.makeText(this, "Сначала загрузите фото окружения", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            btnIdentify.isEnabled = false
+            photoProgress?.visibility = View.VISIBLE
+            CoroutineScope(Dispatchers.Main).launch {
+                try {
+                    val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                    val baseUrl = prefs.getString("server_url", "") ?: ""
+                    val api = ru.dvfu.diplom3d.api.RetrofitInstance.getApiService(baseUrl, this@IdentifyUserActivity)
+                    val resp = api.identification(ru.dvfu.diplom3d.api.IdentificationRequest(reconstructionId, fileId, scale))
+                    if (resp.isSuccessful) {
+                        val body = resp.body()
+                        if (body != null) {
+                            Toast.makeText(this@IdentifyUserActivity, "Идентификация успешна!", Toast.LENGTH_SHORT).show()
+                            val intent = Intent(this@IdentifyUserActivity, ViewMeshActivity::class.java)
+                            intent.putExtra("mesh_id", reconstructionId.toString())
+                            intent.putExtra("x", body.x)
+                            intent.putExtra("y", body.y)
+                            intent.putExtra("z", 50.0)
+                            startActivity(intent)
+                        } else {
+                            Toast.makeText(this@IdentifyUserActivity, "Пустой ответ сервера", Toast.LENGTH_LONG).show()
+                        }
+                    } else {
+                        Toast.makeText(this@IdentifyUserActivity, "Ошибка идентификации: ${resp.code()}", Toast.LENGTH_LONG).show()
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(this@IdentifyUserActivity, "Ошибка идентификации: ${e.message}", Toast.LENGTH_LONG).show()
+                } finally {
+                    btnIdentify.isEnabled = true
+                    photoProgress?.visibility = View.GONE
+                }
+            }
+        }
     }
 
     @Suppress("DEPRECATION")
@@ -208,6 +296,7 @@ class IdentifyUserActivity : AppCompatActivity() {
                         imageView?.setImageURI(uri)
                         val file = File(uri.path!!)
                         uploadPhoto(file)
+                        photoText?.visibility = View.GONE
                     }
                 }
                 2002 -> { // REQUEST_GALLERY
@@ -223,6 +312,7 @@ class IdentifyUserActivity : AppCompatActivity() {
                         if (!picturePath.isNullOrEmpty()) {
                             val file = File(picturePath)
                             uploadPhoto(file)
+                            photoText?.visibility = View.GONE
                         } else {
                             Toast.makeText(this, "Не удалось получить путь к файлу", Toast.LENGTH_SHORT).show()
                         }

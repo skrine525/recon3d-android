@@ -115,6 +115,9 @@ interface ApiService {
     suspend fun uploadUserEnvironmentPhoto(
         @Part file: MultipartBody.Part
     ): Response<UploadPhotoResponse>
+
+    @POST("/api/v1/identification/identifications")
+    suspend fun identification(@Body body: IdentificationRequest): Response<IdentificationResponse>
 }
 
 // Примеры моделей для login/register
@@ -215,4 +218,15 @@ data class ReconstructionListItem(
     val name: String
 )
 
-data class PatchReconstructionRequest(val name: String) 
+data class PatchReconstructionRequest(val name: String)
+
+data class IdentificationRequest(
+    val reconstruction_id: Int,
+    val file_id: String,
+    val scale: Int
+)
+data class IdentificationResponse(
+    val x: Double,
+    val y: Double,
+    val angle: Double
+) 

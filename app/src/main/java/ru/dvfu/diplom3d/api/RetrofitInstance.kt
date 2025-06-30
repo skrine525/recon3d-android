@@ -30,6 +30,7 @@ object RetrofitInstance {
         "PATCH" to Regex("/api/v1/reconstruction/reconstructions/\\d+"),
         "DELETE" to Regex("/api/v1/reconstruction/reconstructions/\\d+"),
         "POST" to Regex("/api/v1/upload/user-environment-photo/"),
+        "POST" to Regex("/api/v1/identification/identifications"),
     )
 
     fun getApiService(baseUrl: String, context: Context? = null): ApiService {
