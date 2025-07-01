@@ -12,8 +12,8 @@ android {
         applicationId = "ru.dvfu.diplom3d"
         minSdk = 29
         targetSdk = 35
-        versionCode = 6
-        versionName = "0.0.6"
+        versionCode = 7
+        versionName = "0.0.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -67,4 +67,7 @@ dependencies {
 
     // PhotoEditor
     implementation("com.burhanrashid52:photoeditor:3.0.2")
+
+    // PhotoView для поддержки масштабирования изображений
+    implementation("com.github.chrisbanes:PhotoView:2.3.0")
 }

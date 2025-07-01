@@ -202,13 +202,6 @@ class IdentifyUserActivity : AppCompatActivity() {
         idTitle.setTextColor(0xFF000000.toInt())
         idTitle.setTypeface(null, android.graphics.Typeface.BOLD)
         idLayout.addView(idTitle)
-        val scaleInputLayout = com.google.android.material.textfield.TextInputLayout(this)
-        scaleInputLayout.hint = "Размер"
-        scaleInputLayout.boxBackgroundMode = 0
-        val scaleEdit = com.google.android.material.textfield.TextInputEditText(this)
-        scaleEdit.inputType = android.text.InputType.TYPE_CLASS_NUMBER
-        scaleInputLayout.addView(scaleEdit)
-        idLayout.addView(scaleInputLayout)
         val btnIdentify = Button(this)
         btnIdentify.text = "Произвести идентификацию"
         btnIdentify.setBackgroundResource(R.drawable.green_button)
@@ -251,12 +244,6 @@ class IdentifyUserActivity : AppCompatActivity() {
         }
 
         btnIdentify.setOnClickListener {
-            val scaleStr = scaleEdit.text?.toString()?.trim()
-            val scale = scaleStr?.toIntOrNull()
-            if (scale == null) {
-                Toast.makeText(this, "Введите корректный размер", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
             val reconstructionId = id
             val fileId = uploadedEnvPhotoId
             if (fileId.isNullOrEmpty()) {
@@ -268,29 +255,73 @@ class IdentifyUserActivity : AppCompatActivity() {
             btnIdentify.text = ""
             identifyProgress.visibility = View.VISIBLE
             CoroutineScope(Dispatchers.Main).launch {
+                var pollCount = 0
+                var lastStatus: Int? = null
+                var postDisplayStatus: String? = null
                 try {
                     val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
                     val baseUrl = prefs.getString("server_url", "") ?: ""
                     val api = ru.dvfu.diplom3d.api.RetrofitInstance.getApiService(baseUrl, this@IdentifyUserActivity)
-                    val resp = api.identification(ru.dvfu.diplom3d.api.IdentificationRequest(reconstructionId, fileId, scale))
+                    // POST без scale
+                    val resp = api.identification(ru.dvfu.diplom3d.api.IdentificationRequest(reconstructionId, fileId, 0))
                     if (resp.isSuccessful) {
-                        val body = resp.body()
-                        if (body != null) {
-                            Toast.makeText(this@IdentifyUserActivity, "Идентификация успешна!", Toast.LENGTH_SHORT).show()
-                            val intent = Intent(this@IdentifyUserActivity, ViewMeshActivity::class.java)
-                            intent.putExtra("mesh_id", reconstructionId.toString())
-                            intent.putExtra("x", body.x)
-                            intent.putExtra("y", body.y)
-                            intent.putExtra("z", 50.0)
-                            startActivity(intent)
-                        } else {
-                            Toast.makeText(this@IdentifyUserActivity, "Пустой ответ сервера", Toast.LENGTH_LONG).show()
+                        val postBody = resp.body()
+                        if (postBody == null || postBody.id == null) {
+                            Toast.makeText(this@IdentifyUserActivity, "Не удалось получить id задачи", Toast.LENGTH_LONG).show()
+                            return@launch
+                        }
+                        val postId = postBody.id
+                        postDisplayStatus = postBody.display_status
+                        Toast.makeText(this@IdentifyUserActivity, postBody.display_status ?: "", Toast.LENGTH_SHORT).show()
+                        var polling = true
+                        while (polling) {
+                            pollCount++
+                            val pollResp = api.getIdentificationStatus(postId)
+                            if (pollResp.isSuccessful) {
+                                val pollBody = pollResp.body()
+                                if (pollBody != null) {
+                                    if (pollBody.status != lastStatus) {
+                                        lastStatus = pollBody.status
+                                        Toast.makeText(this@IdentifyUserActivity, pollBody.display_status ?: "", Toast.LENGTH_SHORT).show()
+                                    } else if (pollCount % 5 == 0) {
+                                        Toast.makeText(this@IdentifyUserActivity, pollBody.display_status ?: "", Toast.LENGTH_SHORT).show()
+                                    }
+                                    when (pollBody.status) {
+                                        3 -> {
+                                            val intent = Intent(this@IdentifyUserActivity, ViewMeshActivity::class.java)
+                                            intent.putExtra("mesh_id", reconstructionId.toString())
+                                            intent.putExtra("x", pollBody.x_value ?: 0.0)
+                                            intent.putExtra("y", pollBody.y_value ?: 0.0)
+                                            intent.putExtra("z", 50.0)
+                                            startActivity(intent)
+                                            polling = false
+                                        }
+                                        4, 5 -> {
+                                            Toast.makeText(this@IdentifyUserActivity, pollBody.display_status ?: "Ошибка", Toast.LENGTH_LONG).show()
+                                            btnIdentify.isEnabled = true
+                                            btnIdentify.setBackgroundResource(R.drawable.green_button)
+                                            btnIdentify.text = "Произвести идентификацию"
+                                            identifyProgress.visibility = View.GONE
+                                            polling = false
+                                        }
+                                        else -> {
+                                            kotlinx.coroutines.delay(2000)
+                                        }
+                                    }
+                                } else {
+                                    Toast.makeText(this@IdentifyUserActivity, "Пустой ответ статуса", Toast.LENGTH_SHORT).show()
+                                    polling = false
+                                }
+                            } else {
+                                Toast.makeText(this@IdentifyUserActivity, "Ошибка статуса: ${pollResp.code()}", Toast.LENGTH_SHORT).show()
+                                polling = false
+                            }
                         }
                     } else {
                         Toast.makeText(this@IdentifyUserActivity, "Ошибка идентификации: ${resp.code()}", Toast.LENGTH_LONG).show()
                     }
                 } catch (e: Exception) {
-                    Toast.makeText(this@IdentifyUserActivity, "Ошибка идентификации: ${e.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@IdentifyUserActivity, "Ошибка: ${e.message}", Toast.LENGTH_LONG).show()
                 } finally {
                     btnIdentify.isEnabled = true
                     btnIdentify.setBackgroundResource(R.drawable.green_button)
