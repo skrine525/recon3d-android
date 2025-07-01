@@ -15,6 +15,7 @@ import retrofit2.http.Headers
 import retrofit2.http.Query
 import retrofit2.http.DELETE
 import retrofit2.http.PATCH
+import com.google.gson.annotations.SerializedName
 
 interface ApiService {
     @GET("/api/v1/common/info")
@@ -118,6 +119,12 @@ interface ApiService {
 
     @POST("/api/v1/identification/identifications")
     suspend fun identification(@Body body: IdentificationRequest): Response<IdentificationResponse>
+
+    @GET("/api/v1/reconstruction/reconstructions/{id}/rooms")
+    suspend fun getRooms(@Path("id") id: Int): Response<RoomsRequest>
+
+    @PUT("/api/v1/reconstruction/reconstructions/{id}/rooms")
+    suspend fun postRooms(@Path("id") id: Int, @Body body: RoomsRequest): Response<Void>
 }
 
 // Примеры моделей для login/register
@@ -229,4 +236,14 @@ data class IdentificationResponse(
     val x: Double,
     val y: Double,
     val angle: Double
+)
+
+data class RoomsRequest(
+    @SerializedName("rooms") val rooms: List<RoomData>
+)
+
+data class RoomData(
+    @SerializedName("number") val number: String,
+    @SerializedName("x") val x: Float,
+    @SerializedName("y") val y: Float
 ) 
