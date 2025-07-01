@@ -19,6 +19,12 @@ import com.bumptech.glide.Glide
 import com.github.chrisbanes.photoview.PhotoView
 import java.util.regex.Pattern
 import android.view.GestureDetector
+import ru.dvfu.diplom3d.api.RoomsRequest
+import ru.dvfu.diplom3d.api.RoomData
+import ru.dvfu.diplom3d.api.RetrofitInstance
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class ConfigureRoomsActivity : AppCompatActivity() {
     data class RoomMarker(val x: Float, val y: Float, val number: String)
@@ -142,20 +148,49 @@ class ConfigureRoomsActivity : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             val imgHeight = imageHeight
-            val roomsJson = buildString {
-                append("{\"rooms\": [")
-                markers.forEachIndexed { i, marker ->
-                    val yOut = imgHeight - marker.y
-                    append("{\"number\":\"${marker.number}\",\"x\":${marker.x},\"y\":$yOut}")
-                    if (i != markers.lastIndex) append(",")
-                }
-                append("]}")
+            val rooms = markers.map { marker ->
+                RoomData(
+                    number = marker.number,
+                    x = marker.x,
+                    y = imgHeight - marker.y
+                )
             }
-            AlertDialog.Builder(this)
-                .setTitle("Информация о метках")
-                .setMessage(roomsJson)
-                .setPositiveButton("OK", null)
-                .show()
+            val meshIdInt = meshId?.toIntOrNull()
+            if (meshIdInt == null) {
+                AlertDialog.Builder(this)
+                    .setTitle("Ошибка")
+                    .setMessage("Не найден id реконструкции")
+                    .setPositiveButton("OK", null)
+                    .show()
+                return@setOnClickListener
+            }
+            val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+            val baseUrl = prefs.getString("server_url", "https://dev.radabot.ru") ?: "https://dev.radabot.ru"
+            val api = RetrofitInstance.getApiService(baseUrl, this)
+            CoroutineScope(Dispatchers.Main).launch {
+                try {
+                    val response = api.postRooms(meshIdInt, RoomsRequest(rooms))
+                    if (response.isSuccessful) {
+                        AlertDialog.Builder(this@ConfigureRoomsActivity)
+                            .setTitle("Успех")
+                            .setMessage("Метки успешно сохранены!")
+                            .setPositiveButton("OK", null)
+                            .show()
+                    } else {
+                        AlertDialog.Builder(this@ConfigureRoomsActivity)
+                            .setTitle("Ошибка")
+                            .setMessage("Ошибка сохранения: ${response.code()}\n${response.errorBody()?.string()}")
+                            .setPositiveButton("OK", null)
+                            .show()
+                    }
+                } catch (e: Exception) {
+                    AlertDialog.Builder(this@ConfigureRoomsActivity)
+                        .setTitle("Ошибка")
+                        .setMessage("Ошибка сохранения: ${e.message}")
+                        .setPositiveButton("OK", null)
+                        .show()
+                }
+            }
         }
     }
 
