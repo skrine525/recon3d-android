@@ -139,6 +139,24 @@ class ConfigureRoomsActivity : AppCompatActivity() {
             overlayView.visibility = View.VISIBLE
             Toast.makeText(this, "Кликните по плану для добавления маркера", Toast.LENGTH_SHORT).show()
         }
+
+        btnSave.setOnClickListener {
+            val imgHeight = imageHeight
+            val roomsJson = buildString {
+                append("{\"rooms\": [")
+                markers.forEachIndexed { i, marker ->
+                    val yOut = imgHeight - marker.y
+                    append("{\"number\":\"${marker.number}\",\"x\":${marker.x},\"y\":$yOut}")
+                    if (i != markers.lastIndex) append(",")
+                }
+                append("]}")
+            }
+            AlertDialog.Builder(this)
+                .setTitle("Информация о метках")
+                .setMessage(roomsJson)
+                .setPositiveButton("OK", null)
+                .show()
+        }
     }
 
     private fun showRoomNumberDialog(x: Float, y: Float) {
