@@ -288,7 +288,6 @@ class IdentifyUserActivity : AppCompatActivity() {
                                     }
                                     when (pollBody.status) {
                                         3 -> {
-                                            Toast.makeText(this@IdentifyUserActivity, pollBody.display_status ?: "Готово", Toast.LENGTH_SHORT).show()
                                             val intent = Intent(this@IdentifyUserActivity, ViewMeshActivity::class.java)
                                             intent.putExtra("mesh_id", reconstructionId.toString())
                                             intent.putExtra("x", pollBody.x_value ?: 0.0)
