@@ -678,10 +678,14 @@ class AddReconstructionActivity : AppCompatActivity() {
         btnConfigureRooms.setOnClickListener {
             val meshIdStr = meshId?.toString()
             val planIdStr = uploadedPhotoId
+            val planPathStr = croppedUri?.path ?: photoUri?.path
             if (!meshIdStr.isNullOrEmpty() && !planIdStr.isNullOrEmpty()) {
                 val intent = Intent(this, ConfigureRoomsActivity::class.java)
                 intent.putExtra("mesh_id", meshIdStr)
                 intent.putExtra("plan_id", planIdStr)
+                if (!planPathStr.isNullOrEmpty()) {
+                    intent.putExtra("plan_path", planPathStr)
+                }
                 startActivity(intent)
             } else {
                 Toast.makeText(this, "Нет id 3D-модели или плана", Toast.LENGTH_SHORT).show()

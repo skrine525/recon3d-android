@@ -67,4 +67,7 @@ dependencies {
 
     // PhotoEditor
     implementation("com.burhanrashid52:photoeditor:3.0.2")
+
+    // PhotoView для поддержки масштабирования изображений
+    implementation("com.github.chrisbanes:PhotoView:2.3.0")
 }
