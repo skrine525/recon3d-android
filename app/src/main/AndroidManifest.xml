@@ -34,6 +34,7 @@
         <activity android:name=".ProfileActivity" android:theme="@style/Theme.Diplom3D.NoActionBar" />
         <activity android:name=".UserDetailActivity" android:theme="@style/Theme.Diplom3D.NoActionBar" />
         <activity android:name=".AddReconstructionActivity" android:theme="@style/Theme.Diplom3D.NoActionBar" />
+        <activity android:name=".ConfigureRoomsActivity" android:theme="@style/Theme.Diplom3D.NoActionBar" />
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"

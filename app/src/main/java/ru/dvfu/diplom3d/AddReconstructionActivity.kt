@@ -470,6 +470,25 @@ class AddReconstructionActivity : AppCompatActivity() {
             btnViewMesh.setBackgroundResource(if (btnViewMesh.isEnabled) R.drawable.blue_button else grayButtonRes)
         }
         meshLayout.addView(btnViewMesh)
+        // Кнопка 'Настроить номера кабинетов'
+        val btnConfigureRooms = Button(this)
+        btnConfigureRooms.text = "Настроить номера кабинетов"
+        btnConfigureRooms.setBackgroundResource(R.drawable.blue_button)
+        btnConfigureRooms.setTextColor(0xFFFFFFFF.toInt())
+        val btnConfigureRoomsParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        btnConfigureRoomsParams.topMargin = 16
+        btnConfigureRooms.layoutParams = btnConfigureRoomsParams
+        btnConfigureRooms.isEnabled = false // станет активной после успешного построения
+        btnConfigureRooms.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+            btnConfigureRooms.setBackgroundResource(if (btnConfigureRooms.isEnabled) R.drawable.blue_button else grayButtonRes)
+        }
+        btnConfigureRooms.setOnFocusChangeListener { _, _ ->
+            btnConfigureRooms.setBackgroundResource(if (btnConfigureRooms.isEnabled) R.drawable.blue_button else grayButtonRes)
+        }
+        meshLayout.addView(btnConfigureRooms)
         meshCard.addView(meshLayout)
         content.addView(meshCard)
 
@@ -572,6 +591,8 @@ class AddReconstructionActivity : AppCompatActivity() {
                                             meshUrl = pollBody.url
                                             btnViewMesh.isEnabled = true
                                             btnViewMesh.setBackgroundResource(R.drawable.blue_button)
+                                            btnConfigureRooms.isEnabled = true
+                                            btnConfigureRooms.setBackgroundResource(R.drawable.blue_button)
                                             btnSave.isEnabled = !nameEdit.text.isNullOrBlank()
                                             btnSave.setBackgroundResource(if (btnSave.isEnabled) R.drawable.green_button else grayButtonRes)
                                             pollingActive = false
@@ -652,6 +673,18 @@ class AddReconstructionActivity : AppCompatActivity() {
                 startActivity(intent)
             } else {
                 Toast.makeText(this, "Нет id 3D-модели", Toast.LENGTH_SHORT).show()
+            }
+        }
+        btnConfigureRooms.setOnClickListener {
+            val meshIdStr = meshId?.toString()
+            val planIdStr = uploadedPhotoId
+            if (!meshIdStr.isNullOrEmpty() && !planIdStr.isNullOrEmpty()) {
+                val intent = Intent(this, ConfigureRoomsActivity::class.java)
+                intent.putExtra("mesh_id", meshIdStr)
+                intent.putExtra("plan_id", planIdStr)
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "Нет id 3D-модели или плана", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -836,6 +869,12 @@ class AddReconstructionActivity : AppCompatActivity() {
                                                // --- Активируем кнопку 'Построить' 3D ---
                                                btnBuildMesh.isEnabled = true
                                                btnBuildMesh.setBackgroundResource(R.drawable.green_button)
+                                               btnConfigureRooms.isEnabled = true
+                                               btnConfigureRooms.setBackgroundResource(R.drawable.blue_button)
+                                               btnViewMesh.isEnabled = false
+                                               btnViewMesh.setBackgroundResource(grayButtonRes)
+                                               btnConfigureRooms.isEnabled = false
+                                               btnConfigureRooms.setBackgroundResource(grayButtonRes)
                                            }
                                            override fun onLoadCleared(placeholder: android.graphics.drawable.Drawable?) {}
                                        })
