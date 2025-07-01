@@ -109,6 +109,15 @@ interface ApiService {
 
     @PATCH("/api/v1/reconstruction/reconstructions/{id}")
     suspend fun patchReconstruction(@Path("id") id: Int, @Body body: PatchReconstructionRequest): Response<Void>
+
+    @Multipart
+    @POST("/api/v1/upload/user-environment-photo/")
+    suspend fun uploadUserEnvironmentPhoto(
+        @Part file: MultipartBody.Part
+    ): Response<UploadPhotoResponse>
+
+    @POST("/api/v1/identification/identifications")
+    suspend fun identification(@Body body: IdentificationRequest): Response<IdentificationResponse>
 }
 
 // Примеры моделей для login/register
@@ -194,10 +203,12 @@ data class CalculateMeshRequest(
 data class CalculateMeshResponse(
     val id: Int,
     val name: String,
+    val status: Int,
+    val status_display: String,
     val created_at: String,
     val created_by: Int,
     val saved_at: String?,
-    val url: String
+    val url: String?
 )
 
 data class SaveReconstructionRequest(val name: String)
@@ -207,4 +218,15 @@ data class ReconstructionListItem(
     val name: String
 )
 
-data class PatchReconstructionRequest(val name: String) 
+data class PatchReconstructionRequest(val name: String)
+
+data class IdentificationRequest(
+    val reconstruction_id: Int,
+    val file_id: String,
+    val scale: Int
+)
+data class IdentificationResponse(
+    val x: Double,
+    val y: Double,
+    val angle: Double
+) 

@@ -550,15 +550,50 @@ class AddReconstructionActivity : AppCompatActivity() {
                     val response = api.calculateMesh(ru.dvfu.diplom3d.api.CalculateMeshRequest(planId, maskId))
                     if (response.isSuccessful) {
                         val meshResp = response.body()
-                        meshUrl = meshResp?.url
-                        meshId = meshResp?.id // сохраняем id для кнопки 'Просмотреть'
+                        meshId = meshResp?.id
                         if (meshId != null) {
-                            btnViewMesh.isEnabled = true
-                            btnViewMesh.setBackgroundResource(R.drawable.blue_button)
-                            Toast.makeText(this@AddReconstructionActivity, "3D-модель построена!", Toast.LENGTH_SHORT).show()
-                            // --- Активируем кнопку 'Сохранить', если поле заполнено ---
-                            btnSave.isEnabled = !nameEdit.text.isNullOrBlank()
-                            btnSave.setBackgroundResource(if (btnSave.isEnabled) R.drawable.green_button else grayButtonRes)
+                            // --- Показываем первый status_display ---
+                            if (meshResp != null) {
+                                Toast.makeText(this@AddReconstructionActivity, meshResp.status_display, Toast.LENGTH_SHORT).show()
+                            }
+                            // --- POLLING ---
+                            var lastStatus: Int? = null
+                            var pollingActive = true
+                            while (pollingActive) {
+                                val pollResp = api.getReconstructionById(meshId!!)
+                                if (pollResp.isSuccessful) {
+                                    val pollBody = pollResp.body()
+                                    if (pollBody != null) {
+                                        if (lastStatus == null || lastStatus != pollBody.status) {
+                                            Toast.makeText(this@AddReconstructionActivity, pollBody.status_display, Toast.LENGTH_SHORT).show()
+                                            lastStatus = pollBody.status
+                                        }
+                                        if (pollBody.status == 3) { // построено
+                                            meshUrl = pollBody.url
+                                            btnViewMesh.isEnabled = true
+                                            btnViewMesh.setBackgroundResource(R.drawable.blue_button)
+                                            btnSave.isEnabled = !nameEdit.text.isNullOrBlank()
+                                            btnSave.setBackgroundResource(if (btnSave.isEnabled) R.drawable.green_button else grayButtonRes)
+                                            pollingActive = false
+                                        } else if (pollBody.status == 4) { // ошибка
+                                            btnBuildMesh.isEnabled = true
+                                            btnBuildMesh.setBackgroundResource(R.drawable.green_button)
+                                            pollingActive = false
+                                        } else {
+                                            kotlinx.coroutines.delay(1000)
+                                        }
+                                    } else {
+                                        pollingActive = false
+                                    }
+                                } else {
+                                    pollingActive = false
+                                }
+                            }
+                            if (lastStatus == 3) {
+                                Toast.makeText(this@AddReconstructionActivity, "3D-модель построена!", Toast.LENGTH_SHORT).show()
+                            } else if (lastStatus == 4) {
+                                Toast.makeText(this@AddReconstructionActivity, "Ошибка построения!", Toast.LENGTH_LONG).show()
+                            }
                         } else {
                             Toast.makeText(this@AddReconstructionActivity, "Нет id 3D-модели", Toast.LENGTH_LONG).show()
                         }

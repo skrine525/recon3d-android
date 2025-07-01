@@ -160,7 +160,9 @@ class ReconstructionDetailActivity : AppCompatActivity() {
         params.topMargin = 16
         btnIdentify.layoutParams = params
         btnIdentify.setOnClickListener {
-            android.widget.Toast.makeText(this, "Идентификация пользователя (заглушка)", android.widget.Toast.LENGTH_SHORT).show()
+            val intent = android.content.Intent(this, IdentifyUserActivity::class.java)
+            intent.putExtra("reconstruction_id", id)
+            startActivity(intent)
         }
         cardLayout.addView(btnIdentify)
 
