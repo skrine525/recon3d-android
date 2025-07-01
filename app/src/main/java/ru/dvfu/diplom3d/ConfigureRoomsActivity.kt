@@ -40,11 +40,6 @@ class ConfigureRoomsActivity : AppCompatActivity() {
         layout.orientation = LinearLayout.VERTICAL
         layout.setPadding(32, 48, 32, 32)
 
-        // --- Отладочный текст ---
-        val debugText = TextView(this)
-        debugText.textSize = 14f
-        layout.addView(debugText)
-
         // --- План ---
         planImageView = PhotoView(this)
         planImageView.layoutParams = FrameLayout.LayoutParams(
@@ -84,11 +79,23 @@ class ConfigureRoomsActivity : AppCompatActivity() {
         btnAddRoom.text = "Добавить номер кабинета"
         btnAddRoom.setBackgroundResource(R.drawable.green_button)
         btnAddRoom.setTextColor(Color.WHITE)
+        val btnAddRoomParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        btnAddRoomParams.topMargin = 24
+        btnAddRoom.layoutParams = btnAddRoomParams
         layout.addView(btnAddRoom)
         val btnSave = Button(this)
         btnSave.text = "Сохранить"
         btnSave.setBackgroundResource(R.drawable.blue_button)
         btnSave.setTextColor(Color.WHITE)
+        val btnSaveParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        btnSaveParams.topMargin = 24
+        btnSave.layoutParams = btnSaveParams
         layout.addView(btnSave)
 
         setContentView(layout)
@@ -98,18 +105,15 @@ class ConfigureRoomsActivity : AppCompatActivity() {
         meshId = intent.getStringExtra("mesh_id")
         val planPath = intent.getStringExtra("plan_path")
         if (!planPath.isNullOrEmpty()) {
-            debugText.text = "plan_path: $planPath"
             val bmp = android.graphics.BitmapFactory.decodeFile(planPath)
             if (bmp != null) {
                 planImageView.setImageBitmap(bmp)
                 imageWidth = bmp.width
                 imageHeight = bmp.height
             } else {
-                debugText.text = "Не удалось загрузить план: $planPath"
                 planImageView.setBackgroundColor(Color.RED)
             }
         } else {
-            debugText.text = "Нет плана (plan_path пустой)"
             planImageView.setBackgroundColor(Color.LTGRAY)
         }
 
@@ -168,6 +172,17 @@ class ConfigureRoomsActivity : AppCompatActivity() {
         markerContainer.addView(marker)
         markers.add(RoomMarker(x, y, number))
         updateMarkers()
+        marker.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("Удалить?")
+                .setMessage("Удалить метку '$number'?")
+                .setPositiveButton("Удалить") { _, _ ->
+                    markerContainer.removeView(marker)
+                    markers.removeAll { it.x == x && it.y == y && it.number == number }
+                }
+                .setNegativeButton("Отмена", null)
+                .show()
+        }
     }
 
     private fun updateMarkers() {
