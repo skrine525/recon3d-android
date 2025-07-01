@@ -18,6 +18,7 @@ import androidx.appcompat.widget.Toolbar
 import com.bumptech.glide.Glide
 import com.github.chrisbanes.photoview.PhotoView
 import java.util.regex.Pattern
+import android.view.GestureDetector
 
 class ConfigureRoomsActivity : AppCompatActivity() {
     data class RoomMarker(val x: Float, val y: Float, val number: String)
@@ -115,6 +116,18 @@ class ConfigureRoomsActivity : AppCompatActivity() {
         // --- Устанавливаем слушатель на изменение матрицы PhotoView ---
         planImageView.setOnMatrixChangeListener {
             updateMarkers()
+        }
+
+        // --- Добавление метки через setOnPhotoTapListener PhotoView ---
+        planImageView.setOnPhotoTapListener { _, x, y ->
+            if (addingMarker) {
+                val drawable = planImageView.drawable ?: return@setOnPhotoTapListener
+                val bitmapX = x * drawable.intrinsicWidth
+                val bitmapY = y * drawable.intrinsicHeight
+                showRoomNumberDialog(bitmapX, bitmapY)
+                overlayView.visibility = View.GONE
+                addingMarker = false
+            }
         }
 
         btnAddRoom.setOnClickListener {
