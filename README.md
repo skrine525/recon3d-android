@@ -1,13 +1,10 @@
 # Diplom3D
 
-Android-приложение для 3D-реконструкций.
-
 ## Требования
 
 - **Android Studio** (рекомендуется последняя версия)
 - **JDK 17** (или версия, требуемая вашим Android SDK)
-- **Android SDK** (API уровень, указанный в проекте)
-- **Интернет** для загрузки зависимостей
+- **Android SDK** (API 33 или выше)
 
 ## Сборка и запуск
 
@@ -39,16 +36,4 @@ Android-приложение для 3D-реконструкций.
    - Нажмите "Run" (зелёная стрелка) в Android Studio или используйте:
      ```sh
      ./gradlew installDebug
-     ```
-
-## Структура проекта
-
-- `app/src/main/java/ru/dvfu/diplom3d/` — основной код приложения
-- `app/src/main/res/` — ресурсы (layout, drawable, values и т.д.)
-- `app/build.gradle.kts` — настройки Gradle для модуля приложения
-- `build.gradle.kts`, `settings.gradle.kts` — корневые настройки Gradle
-
-## Примечания
-
-- Для релизной сборки потребуется настроить подпись APK (см. [официальную документацию](https://developer.android.com/studio/publish/app-signing)).
-- Если возникнут ошибки с зависимостями, убедитесь, что у вас актуальные репозитории в `build.gradle.kts` и стабильное интернет-соединение. 
+     ``` 
